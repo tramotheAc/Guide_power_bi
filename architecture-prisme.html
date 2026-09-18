@@ -674,10 +674,13 @@ select {
 /* Un constat, un principe et un chantier qui parlent de la meme chose portent
    la meme couleur d'un bout a l'autre du dossier : c'est ce qui permet de
    suivre un fil du diagnostic jusqu'a la charge de travail. */
-.fam-modele { --fam: var(--serie-1); }
-.fam-charge { --fam: var(--serie-8); }
-.fam-archi  { --fam: var(--serie-2); }
-.fam-cadre  { --fam: var(--serie-10); }
+.fam-modele  { --fam: var(--serie-1); }
+.fam-charge  { --fam: var(--serie-8); }
+.fam-archi   { --fam: var(--serie-2); }
+.fam-cadre   { --fam: var(--serie-10); }
+/* Le vert de la serie categorielle : la marche la plus eloignee des quatre
+   autres, pour le theme arrive en dernier - le service et l'exposition. */
+.fam-service { --fam: var(--serie-9); }
 
 /* Le jeton de theme reste neutre : le theme se lit a la pastille, au filet du
    haut de fiche et a l'accroche ; le jeton n'a pas besoin de le redire en
@@ -748,12 +751,53 @@ select {
 .lien.lourd .lien-etiquette { border-color: var(--rouge); color: var(--rouge); background: var(--rouge-fond); }
 .lien-note { font-size: 12px; color: var(--encre-doux); margin-left: 10px; }
 
+/* Onze entrees et quatre intitules de groupe ne tiennent plus dans tous les
+   ecrans : c'est la navigation qui defile, pas le rail entier - le pied doit
+   rester visible. */
+.nav { overflow-y: auto; min-height: 0; }
+
+/* Les sorties d'un etage : un meme etage sert plusieurs consommateurs, par
+   des interfaces differentes. Elles se lisent comme un embranchement, pas
+   comme une suite. */
+.sorties { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 9px; }
+@media (max-width: 760px) { .sorties { grid-template-columns: 1fr; } }
+.sortie {
+  border: 1px solid var(--bord); border-left: 3px solid var(--fam);
+  border-radius: var(--radius-sm); padding: 9px 11px; background: var(--surface-2);
+}
+.sortie h5 { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; }
+.sortie p { margin: 0; font-size: 12px; color: var(--encre-doux); }
+.sortie .jeton { margin-top: 6px; }
+
+/* Trois socles : trois colonnes, etirees a la meme hauteur. Sans le stretch,
+   les trois verdicts se lisent a trois hauteurs differentes et la comparaison
+   ne se fait plus d'un coup d'oeil. */
+.socles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: stretch; }
+@media (max-width: 1100px) { .socles { grid-template-columns: 1fr; } }
+
+/* Le pied d'une carte de socle ou de cas : le verdict, detache du corps. */
+.socle-pied {
+  margin-top: auto; padding: 10px 14px; border-top: 1px solid var(--bord);
+  background: var(--surface-2); font-size: 12.5px; color: var(--encre);
+}
+.socle-pied b { font-weight: 700; }
+
+/* La lettre d'un cas du fork, dans la tete de sa carte. */
+.cas-lettre {
+  display: inline-grid; place-items: center; width: 22px; height: 22px;
+  border-radius: var(--radius-sm); background: var(--blue-950); color: #fff;
+  font-weight: 700; font-size: 12px; margin-right: 7px;
+}
+
 /* Avant / apres cote a cote : c'est la lecture qui porte la demonstration. */
 .avant-apres { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 @media (max-width: 1100px) { .avant-apres { grid-template-columns: 1fr; } }
 
 /* ------------------------------------------------------------- les fiches */
-.grille-fiches { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; align-items: start; }
+/* min() est indispensable : une piste minmax(380px, 1fr) ne peut pas
+   descendre sous 380 px, et la carte deborde alors d'un ecran de
+   390 px moins ses marges. */
+.grille-fiches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 14px; align-items: start; }
 
 .fiche { border-top: 3px solid var(--fam); }
 .fiche > header { align-items: flex-start; }
@@ -934,7 +978,9 @@ select {
 /* ------------------------------------------------- tableau des relations */
 .famille-cellule { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12.5px; }
 #relations .cadre-table, #charge .cadre-table, #incremental .cadre-table,
-#synthese .cadre-table, #resultat .cadre-table, #annexe-faits .cadre-table { max-height: none; }
+#synthese .cadre-table, #resultat .cadre-table, #annexe-faits .cadre-table,
+#consommateurs .cadre-table, #objets-sql .cadre-table,
+#configurations .cadre-table, #socles-table .cadre-table { max-height: none; }
 /* Un nom de table ou de colonne se lit en chasse fixe : c'est un identifiant
    technique, pas un libelle humain. */
 td .objet { font-family: var(--font-mono); font-size: 11.5px; overflow-wrap: anywhere; }
@@ -986,20 +1032,25 @@ td .objet b { font-weight: 700; color: var(--encre); }
     <ul class="nav" id="nav">
       <li class="nav-groupe" role="presentation">Constater</li>
       <li><button type="button" data-page="contexte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/></svg>La chaîne actuelle</button></li>
-      <li><button type="button" data-page="diagnostic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 13h7v8H3z"/></svg>Les 9 constats</button></li>
+      <li><button type="button" data-page="diagnostic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 13h7v8H3z"/></svg>Les 11 constats</button></li>
       <li class="nav-groupe" role="presentation">Cadrer</li>
-      <li><button type="button" data-page="principes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M9.5 19V4M15 19v-7M20.5 19v-4"/></svg>Les 8 principes</button></li>
-      <li><button type="button" data-page="cible"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>L’architecture cible</button></li>
+      <li><button type="button" data-page="principes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M9.5 19V4M15 19v-7M20.5 19v-4"/></svg>Les 10 principes</button></li>
+      <li><button type="button" data-page="plateforme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>Le changement de cadre</button></li>
+      <li><button type="button" data-page="jointures"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>Où vivent les jointures</button></li>
       <li class="nav-groupe" role="presentation">Projeter</li>
+      <li><button type="button" data-page="cible"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>L’étage BI</button></li>
+      <li><button type="button" data-page="configurations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 19h18L12 3z"/><path d="M12 3v16"/></svg>Les 5 projections</button></li>
       <li><button type="button" data-page="relations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Les 34 relations</button></li>
-      <li><button type="button" data-page="bascule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10l-3-3M20 17H10l3 3"/></svg>Ordre &amp; charge</button></li>
+      <li><button type="button" data-page="socles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10 16 8"/></svg>Les 3 socles</button></li>
+      <li class="nav-groupe" role="presentation">Décider</li>
+      <li><button type="button" data-page="trajectoire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 8 4M20 20 16 4"/><path d="M12 5v2M12 11v2M12 17v2"/></svg>Feuille de route</button></li>
       <li><button type="button" data-page="annexe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Annexe factuelle</button></li>
     </ul>
 
     <div class="rail-pied">
       <b>Dossier d’architecture</b><br>
-      Refonte de la ligne de modèles sémantiques Power BI de la plateforme PRISME.
-      Diagnostic factuel, principes de conception, projection sur les objets réels.
+      De l’architecture BI de PRISME à une plateforme de service de données :
+      diagnostic factuel, principes, cible à trois étages et feuille de route.
       <br><a class="lien-sortant" href="index.html">→ Guide de performance Power BI</a>
       <br><span class="tech" id="version">version 1.0</span>
     </div>
@@ -1044,13 +1095,35 @@ td .objet b { font-weight: 700; color: var(--encre); }
           </div>
         </section>
 
+        <section class="carte">
+          <header><div><h3>Les quatre consommateurs à servir</h3>
+            <p>C’est ce tableau qui a fait changer le dossier de nature : tant qu’il n’y avait
+              que la BI, un modèle sémantique suffisait.</p></div></header>
+          <div id="consommateurs"></div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>PRISME cumule deux rôles, bientôt quatre</h4>
+            <p>PRISME a été conçu comme un modèle sémantique Power BI faisant à la fois
+              <b>couche d’exposition libre-service</b> — des jointures pour des métiers sans SQL ni
+              DAX — <b>et socle des applications BI</b>. L’arrivée des <b>API externes</b> et des
+              <b>applis conteneurisées</b> ajoute deux profils de plus. Or un modèle sémantique
+              Power BI ne sait servir que la BI.</p>
+            <p>D’où la conclusion structurante de ce dossier : il ne faut pas un artefact central
+              qui fait tout, mais <b>une source de vérité unique — l’entrepôt — matérialisée en
+              plusieurs configurations, servies par des interfaces adaptées à chaque profil</b>.</p>
+          </div>
+        </div>
+
         <div class="duo">
           <section class="carte">
             <header><div><h3>Contraintes de licence et d’échelle</h3></div></header>
             <div class="corps"><div id="echelle"></div></div>
           </section>
           <section class="carte">
-            <header><div><h3>Les quatre thèmes du dossier</h3>
+            <header><div><h3>Les cinq thèmes du dossier</h3>
               <p>Un constat, un principe et un chantier qui parlent de la même chose portent la même
                 couleur d’un bout à l’autre.</p></div></header>
             <div class="corps"><div id="themes"></div></div>
@@ -1113,6 +1186,115 @@ td .objet b { font-weight: 700; color: var(--encre); }
         <div class="grille-fiches" id="principes"></div>
       </section>
 
+      <!-- ------------------------------------------------------------- plateforme -->
+      <section class="vue" id="vue-plateforme">
+        <p class="intro">Tant qu’il n’y avait que la BI, un modèle sémantique central suffisait.
+          Avec quatre profils de consommation, la question n’est plus « quel modèle ? » mais
+          <b>« quelle interface pour qui ? »</b>. Cette page pose le cadre dont découlent les
+          projections, les socles et la feuille de route.</p>
+
+        <section class="carte">
+          <header><div><h3>Deux familles d’accès, irréconciliables dans un seul store</h3>
+            <p>Ce ne sont pas deux niveaux d’exigence sur la même chose : ce sont deux façons
+              d’interroger la donnée, qu’aucun moteur ne sert bien en même temps.</p></div></header>
+          <div class="corps">
+            <div class="duo" id="familles-acces"></div>
+          </div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Le principe unificateur</h4>
+            <p><b>Calculer chaque jointure et chaque produit une seule fois, le matérialiser, puis le
+              servir via l’interface adaptée à chaque consommateur — sans jamais laisser un
+              consommateur rejoindre en live l’entrepôt analytique sous charge.</b></p>
+            <p>L’intuition « stocker le modèle dans plusieurs configurations » est exactement cela :
+              <b>un modèle logique unique, plusieurs projections physiques</b> taillées par profil
+              d’accès. La fraîcheur hétérogène est absorbée au passage — chaque projection est
+              rafraîchie à la cadence de <i>son</i> consommateur.</p>
+          </div>
+        </div>
+
+        <section class="carte">
+          <header><div><h3>La cible à trois étages</h3>
+            <p>Sens de circulation : opérationnel → analytique → service. On n’écrit jamais du
+              transactionnel dans le DWH ; on ne fait jamais de BI sur l’OLTP.</p></div></header>
+          <div class="corps">
+            <div class="couches" id="etages-cible"></div>
+          </div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Point de décision ouvert — le fork « transactionnel »</h3>
+            <p>Le mot <i>transactionnel</i>, pour les API internes, recouvre deux cas très différents
+              qui appellent des architectures différentes. À trancher <b>avant</b> de dimensionner
+              quoi que ce soit.</p></div></header>
+          <div class="corps">
+            <div class="fork duo" id="fork"></div>
+            <p class="note-mesure" style="margin-top:14px">La question « <b>qui possède la donnée
+              transactionnelle</b> » décide de tout le reste. Dans la plupart des architectures
+              conteneurisées saines, c’est le <b>cas A</b> : les services possèdent leur donnée, et la
+              plateforme data reste analytique plus service de lecture.</p>
+          </div>
+        </section>
+      </section>
+
+      <!-- -------------------------------------------------------------- jointures -->
+      <section class="vue" id="vue-jointures">
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Une jointure n’est pas un objet stocké</h4>
+            <p>C’est le point qui surprend quand on vient de « tables plus procédures stockées ».
+              Contrairement à une relation Power BI — qui porte une direction et une cardinalité — la
+              base ne stocke <b>pas</b> la jointure. Elle stocke sa <b>matière</b> : des tables bien
+              formées et des clés propres. Le <b>comportement</b> (direction, filtre) est un concept
+              propre à l’outil de restitution.</p>
+            <p>La jointure est donc un <b>acte</b> : on l’écrit dans une requête, ou <b>une fois pour
+              toutes dans une vue</b>. Tout ce qui suit découle de ce choix.</p>
+          </div>
+        </div>
+
+        <section class="carte">
+          <header><div><h3>La boîte à outils SQL, et le rôle de chacun</h3>
+            <p>Trois de ces six objets sont nouveaux pour l’équipe : ils sont signalés comme tels.</p></div></header>
+          <div id="objets-sql"></div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Le rôle des procédures stockées ne change pas</h4>
+            <p><b>Procédures = construire les marts</b> — la transformation qui alimente l’étoile,
+              orchestrée par ADF. <b>Vues = exposer les marts</b> — l’interface de consommation.</p>
+            <p>On ne consomme pas une plateforme via des procédures : pas de <i>query folding</i>, et
+              c’est fragile en import. Ce que l’équipe sait déjà faire reste donc au même endroit ;
+              c’est une couche qui s’ajoute, pas une pratique qui se remplace.</p>
+          </div>
+        </div>
+
+        <section class="carte">
+          <header><div><h3>Pourquoi la vue est le pivot</h3></div></header>
+          <div class="corps">
+            <div class="reflexes" id="enjeux-vues"></div>
+          </div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Le piège : ne pas tout aplatir</h4>
+            <p>Pour un modèle Power BI <b>en import</b>, il ne faut <b>pas</b> tout aplatir dans une
+              grosse vue pré-jointe : cela casse la compression de VertiPaq et l’efficacité de
+              l’étoile. On expose des <b>vues minces par dimension et par fait</b>, et on laisse
+              Power BI <b>rebâtir l’étoile</b> sur des clés propres.</p>
+            <p>Les vues larges aplaties ont leur place — mais pour les usages <b>Excel et SQL
+              ad-hoc</b>, où c’est justement le pré-joint qu’on vient chercher.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- ------------------------------------------------------------------ cible -->
       <section class="vue" id="vue-cible">
         <section class="carte">
@@ -1167,24 +1349,19 @@ td .objet b { font-weight: 700; color: var(--encre); }
         </section>
       </section>
 
-      <!-- -------------------------------------------------------------- relations -->
-      <section class="vue" id="vue-relations">
-        <div class="tuiles" id="chiffres-relations"></div>
-
-        <div class="filtres-page" id="criteres">
-          <span class="etiquette-filtre">Afficher</span>
-        </div>
+      <!-- --------------------------------------------------------- configurations -->
+      <section class="vue" id="vue-configurations">
+        <p class="intro">Un même <b>modèle logique</b>, projeté physiquement selon le consommateur.
+          Chaque projection est rafraîchie à la cadence de <i>son</i> consommateur : c’est ainsi que la
+          fraîcheur hétérogène se règle, sans empiler un modèle par palier de fréquence.</p>
 
         <section class="carte">
-          <header><div><h3>Les 34 relations du chapeau PRISME</h3>
-            <p>Toutes sont aujourd’hui en <span class="tech">bothDirections</span>. Cible proposée :
-              sens unique — dimension ou calendrier vers le fait — sauf mention contraire.</p></div></header>
-          <div id="relations"></div>
+          <header><div><h3>Les cinq projections</h3></div></header>
+          <div id="configurations"></div>
           <div class="corps" style="padding-top:12px">
-            <p class="note-mesure">Les relations de tables-pont sont à <b>arbitrer une par une</b> :
-              le plus souvent sens unique plus propagation par mesure, parfois bidirectionnel délibéré sur
-              un seul côté. C’est le seul lot qui demande une décision de modélisation plutôt qu’une
-              application de règle.</p>
+            <p class="note-mesure">La dernière ligne n’existe que dans le <b>cas B</b> du fork
+              transactionnel. Tant que ce point n’est pas tranché, elle reste une hypothèse et ne se
+              chiffre pas.</p>
           </div>
         </section>
 
@@ -1228,20 +1405,69 @@ td .objet b { font-weight: 700; color: var(--encre); }
         </section>
       </section>
 
-      <!-- ---------------------------------------------------------------- bascule -->
-      <section class="vue" id="vue-bascule">
+      <!-- -------------------------------------------------------------- relations -->
+      <section class="vue" id="vue-relations">
+        <div class="tuiles" id="chiffres-relations"></div>
+
+        <div class="filtres-page" id="criteres">
+          <span class="etiquette-filtre">Afficher</span>
+        </div>
+
         <section class="carte">
-          <header><div><h3>Ordre de bascule</h3>
-            <p>Du meilleur rapport gain / effort au plus structurant. Les trois premières étapes sont
-              réalisables <b>sur l’existant</b> et apportent l’essentiel des gains de performance avant
-              même la refonte d’architecture.</p></div></header>
-          <div class="jalons" id="jalons"></div>
+          <header><div><h3>Les 34 relations du chapeau PRISME</h3>
+            <p>Toutes sont aujourd’hui en <span class="tech">bothDirections</span>. Cible proposée :
+              sens unique — dimension ou calendrier vers le fait — sauf mention contraire.</p></div></header>
+          <div id="relations"></div>
+          <div class="corps" style="padding-top:12px">
+            <p class="note-mesure">Les relations de tables-pont sont à <b>arbitrer une par une</b> :
+              le plus souvent sens unique plus propagation par mesure, parfois bidirectionnel délibéré sur
+              un seul côté. C’est le seul lot qui demande une décision de modélisation plutôt qu’une
+              application de règle.</p>
+            <p class="note-mesure" style="margin-top:8px">Les relations <b>#10</b> et <b>#23</b> relient
+              deux faits de <b>même grain</b> — client × année-mois — sur une clé texte. La bonne réponse
+              n’est pas un rafistolage DAX mais une <b>consolidation de grain dans le DWH</b> : fusionner
+              ces tables. C’est l’un des quatre points de décision ouverts.</p>
+          </div>
         </section>
+      </section>
+
+      <!-- ----------------------------------------------------------------- socles -->
+      <section class="vue" id="vue-socles">
+        <p class="intro">Trois familles pour porter la définition des jointures et la servir aux
+          consommateurs. Elles ne s’excluent pas dans le temps : la première est le socle de départ,
+          les deux autres sont des horizons.</p>
+
+        <div class="socles" id="socles"></div>
+
+        <section class="carte">
+          <header><div><h3>Les trois socles, ligne à ligne</h3></div></header>
+          <div id="socles-table"></div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Import figé ou live gouverné : le vrai arbitrage</h4>
+            <p><b>Import figé</b> — vues SQL et tables de service : protège le DWH par des
+              rafraîchissements bornés, compatible avec la fraîcheur par table, simple à exploiter.
+              Recommandé pour la BI et les endpoints quotidiens.</p>
+            <p><b>Live gouverné</b> — couche sémantique ou Direct Lake : une définition, plusieurs
+              consommateurs temps réel, au prix d’une plateforme et d’une dépendance de disponibilité.
+              Pertinent pour le service API et l’unification à terme.</p>
+            <p><b>Réserve :</b> les spécifications et les tarifs des produits tiers cités sont à
+              vérifier au moment du choix. Rien ici ne tient lieu de comparatif commercial.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------ trajectoire -->
+      <section class="vue" id="vue-trajectoire">
+        <div class="horizons" id="horizons"></div>
 
         <section class="carte">
           <header><div><h3>Aperçu de la charge de travail</h3>
-            <p>Efforts indicatifs, à affiner. Le risque se lit comme le besoin de tests de non-régression
-              sur les chiffres restitués.</p></div></header>
+            <p>Efforts indicatifs, à affiner. Le risque se lit comme le besoin de tests de
+              non-régression sur les chiffres restitués.</p></div></header>
           <div id="charge"></div>
         </section>
 
@@ -1251,9 +1477,17 @@ td .objet b { font-weight: 700; color: var(--encre); }
         </section>
 
         <section class="carte">
-          <header><div><h3>Ce qui reste à trancher</h3>
-            <p>Les points que ce dossier pose sans les fermer : ils demandent une décision ou une mesure
-              avant d’aller plus loin.</p></div></header>
+          <header><div><h3>Les quatre décisions à prendre</h3>
+            <p>Ce sont des arbitrages, pas des travaux : rien ne les remplace, et la première
+              commande le dimensionnement de tout l’étage opérationnel.</p></div></header>
+          <div class="corps">
+            <div class="reflexes" id="decisions-ouvertes"></div>
+          </div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Ce qu’il reste à mesurer ou à cadrer</h3>
+            <p>À distinguer des décisions ci-dessus : ce sont des travaux, pas des choix.</p></div></header>
           <div class="corps">
             <div class="reflexes" id="ouvertures"></div>
           </div>
@@ -1328,40 +1562,50 @@ td .objet b { font-weight: 700; color: var(--encre); }
    ce qui permet de suivre un fil du diagnostic jusqu'a la charge de travail.
    La couleur est portee par une classe, jamais ecrite ici. */
 var FAM = {
-  modele: { libelle: 'Modèle',       classe: 'fam-modele',
-            question: 'Le modèle est-il rangé comme le moteur l’attend ?' },
-  charge: { libelle: 'Charge',       classe: 'fam-charge',
-            question: 'Que coûte un rafraîchissement, et à quelle cadence ?' },
-  archi:  { libelle: 'Architecture', classe: 'fam-archi',
-            question: 'Combien de couches, et reliées comment ?' },
-  cadre:  { libelle: 'Cadre',        classe: 'fam-cadre',
-            question: 'Que permettent la licence et l’outillage ?' }
+  modele:  { libelle: 'Modèle',       classe: 'fam-modele',
+             question: 'Le modèle est-il rangé comme le moteur l’attend ?' },
+  charge:  { libelle: 'Charge',       classe: 'fam-charge',
+             question: 'Que coûte un rafraîchissement, et à quelle cadence ?' },
+  archi:   { libelle: 'Architecture', classe: 'fam-archi',
+             question: 'Combien de couches, et reliées comment ?' },
+  service: { libelle: 'Service',      classe: 'fam-service',
+             question: 'Qui consomme, et par quelle interface ?' },
+  cadre:   { libelle: 'Cadre',        classe: 'fam-cadre',
+             question: 'Que permettent la licence et l’outillage ?' }
 };
 
 /* Les pages du rail : ce que la scene annonce quand on les ouvre. */
 var PAGES = {
-  contexte:   { titre: 'La chaîne de modèles PRISME aujourd’hui',
-                sous: 'D’Azure SQL à l’application : ce qui est en place, sous quelles contraintes, et le besoin qui motive la refonte.' },
-  diagnostic: { titre: 'État des lieux — neuf constats',
-                sous: 'Relevés dans les définitions TMDL des trois modèles. Cinq relèvent de la conception, quatre de l’architecture et du cadre.' },
-  principes:  { titre: 'Huit principes de construction',
-                sous: 'La grille de lecture, indépendante de PRISME, dont découlent l’architecture cible et l’ordre de bascule.' },
-  cible:      { titre: 'L’architecture cible',
-                sous: 'Un modèle central en import, consommé en connexion live par les 18 applications. Et les deux plafonds qui dictent la suite.' },
-  relations:  { titre: 'Projection sur nos objets réels',
-                sous: 'Les 34 relations à reprendre, la clé d’arrêté à créer, et les tables candidates à l’incrémental.' },
-  bascule:    { titre: 'Ordre de bascule et charge de travail',
-                sous: 'Six étapes, du meilleur rapport gain / effort au plus structurant. Les trois premières se font sur l’existant.' },
-  annexe:     { titre: 'Annexe factuelle',
-                sous: 'Ce qui a été relevé dans les modèles — et ce que ce relevé ne dit pas.' }
+  contexte:       { titre: 'La chaîne PRISME et ses quatre consommateurs',
+                    sous: 'Ce qui est en place, qui le consomme, sous quelles contraintes — et pourquoi un modèle sémantique ne peut pas tous les servir.' },
+  diagnostic:     { titre: 'État des lieux — onze constats',
+                    sous: 'Relevés dans les définitions TMDL des trois modèles, plus deux constats de périmètre. Sept relèvent de la conception, quatre de l’architecture, du service et du cadre.' },
+  principes:      { titre: 'Dix principes de construction',
+                    sous: 'La grille de lecture, indépendante de PRISME, dont découlent l’architecture cible et la feuille de route.' },
+  plateforme:     { titre: 'Le changement de cadre',
+                    sous: 'D’une architecture BI à une plateforme de service : deux familles d’accès, un principe unificateur, trois étages.' },
+  jointures:      { titre: 'Où vivent les jointures',
+                    sous: 'Une jointure n’est pas un objet stocké. Ce que la boîte à outils SQL permet, et pourquoi la vue est le pivot.' },
+  cible:          { titre: 'L’étage BI de la cible',
+                    sous: 'Un modèle central en import, consommé en connexion live par les 18 applications. Et les deux plafonds qui dictent la suite.' },
+  configurations: { titre: 'Un modèle logique, cinq projections',
+                    sous: 'La même vérité matérialisée dans la forme qu’attend chaque consommateur — et le prérequis qui bloque tout le reste.' },
+  relations:      { titre: 'Projection sur nos objets réels',
+                    sous: 'Les 34 relations à reprendre, classées par lot de travail.' },
+  socles:         { titre: 'Trois socles cibles, comparés',
+                    sous: 'Vues SQL natives, couche sémantique servant aussi des API, Microsoft Fabric. Ce que chacun coûte et à quel horizon.' },
+  trajectoire:    { titre: 'Feuille de route et charge de travail',
+                    sous: 'Court, moyen, long terme. Ce qui se fait sur l’existant, ce qui attend une décision.' },
+  annexe:         { titre: 'Annexe factuelle',
+                    sous: 'Ce qui a été relevé dans les modèles — et ce que ce relevé ne dit pas.' }
 };
 
 /* Les chiffres cles de la page d'ouverture. */
 var CHIFFRES = [
-  { etiquette: 'Modèles à maintenir', valeur: '3 + 18', note: 'DAILY, HOURLY, chapeau composite, et un modèle par application', accent: true },
+  { etiquette: 'Profils de consommation', valeur: '4', note: 'BI, collaborateurs, API externes, API internes', accent: true },
+  { etiquette: 'Modèles à maintenir', valeur: '3 + 18', note: 'DAILY, HOURLY, chapeau composite, et un modèle par application' },
   { etiquette: 'Relations bidirectionnelles', valeur: '100 %', note: '67 relations sur 67, dans les trois modèles' },
-  { etiquette: 'Tables en incrémental', valeur: '0', note: 'sur 37 tables importées, toutes rechargées en entier' },
-  { etiquette: 'Applications servies', valeur: '18', note: '~134 utilisateurs actifs, ~824 connexions par mois' }
+  { etiquette: 'Tables en incrémental', valeur: '0', note: 'sur 37 tables importées, toutes rechargées en entier' }
 ];
 
 var CHIFFRES_RELATIONS = [
@@ -1394,7 +1638,16 @@ var IC = {
   balance: '<line x1="12" y1="3" x2="12" y2="21"/><path d="M7 7h10"/><path d="M4 16 7 7l3 9a3 3 0 0 1-6 0z"/><path d="M14 16l3-9 3 9a3 3 0 0 1-6 0z"/>',
   code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
   loupe: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-  euro: '<circle cx="12" cy="12" r="9"/><path d="M16 8.5a4.5 4.5 0 1 0 0 7"/><line x1="6.5" y1="11" x2="12.5" y2="11"/><line x1="6.5" y1="13.5" x2="12.5" y2="13.5"/>'
+  euro: '<circle cx="12" cy="12" r="9"/><path d="M16 8.5a4.5 4.5 0 1 0 0 7"/><line x1="6.5" y1="11" x2="12.5" y2="11"/><line x1="6.5" y1="13.5" x2="12.5" y2="13.5"/>',
+  oeil: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>',
+  prisme: '<path d="M12 3 3 19h18L12 3z"/><path d="M12 3v16"/>',
+  route: '<path d="M4 20 8 4M20 20 16 4"/><path d="M12 5v2M12 11v2M12 17v2"/>',
+  api: '<path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"/><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"/>',
+  cache: '<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/>',
+  tableur: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>',
+  separer: '<line x1="12" y1="3" x2="12" y2="21"/><path d="M8 7 4 12l4 5"/><path d="m16 7 4 5-4 5"/>',
+  boussole: '<circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10 16 8"/>',
+  chapeaux: '<path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/><path d="M9 6V4h6v2"/><path d="M9 11h6M9 15h6"/>'
 };
 
 /* ===========================================================================
@@ -1483,7 +1736,10 @@ var ECHELLE_ORG = [
   { quoi: 'Applications', valeur: '18', note: '165 licences attribuées.' },
   { quoi: 'Utilisateurs actifs', valeur: '~134', note: 'Sur les 2 derniers mois.' },
   { quoi: 'Connexions', valeur: '~824 / mois', note: '1 connexion = 1 utilisateur × 1 appli × 1 jour. Concurrence modérée.' },
-  { quoi: 'Cycle de vie', valeur: 'Manuel', note: 'Tout est doublé en DEV et PROD : modèles PRISME, espaces de travail, chaîne ADF.' }
+  { quoi: 'Cycle de vie', valeur: 'Manuel', note: 'Tout est doublé en DEV et PROD : modèles PRISME, espaces de travail, chaîne ADF.' },
+  { quoi: 'Charge sur l’entrepôt', valeur: 'À ne pas faire exploser', note: 'Aucun consommateur ne doit rejoindre en live l’entrepôt analytique sous charge.' },
+  { quoi: 'Fraîcheur', valeur: 'Hétérogène par table', note: '5 à 10 tables « chaudes » plusieurs fois par jour ; le reste quotidien.' },
+  { quoi: 'Compétences SQL', valeur: 'Tables et procédures', note: 'Novices sur les vues, vues indexées et fonctions table — montée en compétence à prévoir.' }
 ];
 
 /* ===========================================================================
@@ -1590,7 +1846,32 @@ var CONSTATS = [
     preuve: "Modèles analysés branchés sur la base <span class=\"tech\">entrepot-dev</span>, workspace « DataHub - PRISME - DEV ».",
     cible: "À intégrer dans la réflexion de licence : c'est un des bénéfices de PPU, au même titre que les 48 rafraîchissements par jour et les modèles plus gros. La consolidation le réduit déjà mécaniquement, en divisant le nombre d'objets à doubler.",
     tags: ['maintenance', 'licence'],
-    principes: ['licence']
+    principes: ['licence']  },
+
+  /* Les deux constats de perimetre. Ils ne viennent pas des definitions TMDL
+     mais du cadrage : ils disent ce que PRISME a ete somme de faire, et ce
+     qu'un modele semantique ne sait pas faire. */
+  {
+    id: 'quatre-roles', fam: 'service', icon: 'chapeaux', repere: 'J',
+    name: 'PRISME cumule quatre rôles', tagline: 'Un modèle sémantique ne sait servir que la BI',
+    gravite: 'fort',
+    fait: "PRISME a été conçu comme un modèle sémantique Power BI faisant à la fois <b>couche d'exposition libre-service</b> — des jointures pour des métiers sans SQL ni DAX — <b>et socle des applications BI</b>. L'arrivée des <b>endpoints API externes</b> et des <b>applis conteneurisées</b> ajoute deux profils de plus.",
+    consequence: "Or un modèle sémantique Power BI ne sait servir que la BI : il n'expose ni SQL, ni REST, ni GraphQL — en licence Pro, il n'expose même pas d'endpoint XMLA. Les deux nouveaux profils n'ont donc <b>aucune interface</b>, et la tentation naturelle est de les brancher en direct sur l'entrepôt.",
+    preuve: "Quatre profils de consommation à servir, un seul artefact central prévu pour un seul d'entre eux.",
+    cible: "Ne pas chercher un artefact central qui fait tout. <b>Une source de vérité unique — l'entrepôt — matérialisée en plusieurs configurations, servies par des interfaces adaptées à chaque profil.</b> C'est la conclusion structurante de ce dossier.",
+    tags: ['perimetre', 'service', 'refonte'],
+    principes: ['projections', 'vues']
+  },
+  {
+    id: 'sans-interface', fam: 'service', icon: 'api', repere: 'K',
+    name: 'Les consommateurs non-BI n’ont pas d’interface', tagline: 'Le risque : des jointures live sur l’entrepôt',
+    gravite: 'fort',
+    fait: "Les endpoints API externes et les API internes des conteneurs n'ont, à ce jour, aucun point d'accès prévu. Aucune table de service, aucune vue de partage, aucun cache : rien n'est posé entre eux et l'entrepôt.",
+    consequence: "Sans interface dédiée, ces consommateurs finiront par requêter le DWH directement — avec des jointures évaluées à la demande, sous une charge que l'entrepôt analytique encaisse <b>mal</b>. C'est précisément le « faire exploser le requêtage » que la contrainte de départ interdit, et l'accès transactionnel ligne à ligne en est la pire version.",
+    preuve: "Contrainte structurante posée au cadrage : <b>aucun consommateur ne doit rejoindre en live l'entrepôt analytique sous charge</b>.",
+    cible: "Un <b>étage de service</b> entre l'entrepôt et les consommateurs : produits pré-joints matérialisés, tables indexées sur les clés d'accès, et un cache pour les chemins chauds si le temps réel est confirmé.",
+    tags: ['perimetre', 'service', 'refonte'],
+    principes: ['projections', 'vues']
   }
 ];
 
@@ -1690,9 +1971,25 @@ in
     id: 'licence', fam: 'cadre', icon: 'mur', repere: '8',
     name: 'Les plafonds Pro dictent la trajectoire', tagline: 'Deux murs, et ce qu’il y a derrière',
     regle: "Deux plafonds Pro décident du moment où il faudra changer de palier : <b>8 rafraîchissements planifiés par jour et par modèle</b> — 48 en PPU et Premium — et <b>1 Go par modèle</b>, avec des tailles très supérieures en PPU et Premium.",
-    chez_nous: "Le besoin actuel, jusqu'à 4×/jour, tient largement sous le premier. On est à ~422 Mo sous le second, mais les historiques grossissent : l'incrémental aide, puisqu'on ne stocke que le nécessaire, mais ce plafond finira par se rapprocher. Le jour où l'un des deux est atteint, <b>PPU</b> est le palier naturel — et il apporte en prime les <i>deployment pipelines</i> qui supprimeraient le doublonnage DEV/PROD manuel.",
+    chez_nous: "Le besoin actuel, jusqu'à 4×/jour, tient largement sous le premier. On est à ~422 Mo sous le second, mais les historiques grossissent : l'incrémental aide, puisqu'on ne stocke que le nécessaire, mais ce plafond finira par se rapprocher. Le jour où l'un des deux est atteint, <b>PPU</b> est le palier naturel — et il apporte en prime les <i>deployment pipelines</i> qui supprimeraient le doublonnage DEV/PROD manuel, et l'<b>endpoint XMLA</b> qui ouvrirait le modèle à des outils tiers.",
     corrige: ['cycle-vie'],
-    tags: ['cadre', 'licence']
+    tags: ['cadre', 'licence']  },
+  {
+    id: 'projections', fam: 'service', icon: 'prisme', repere: '9',
+    name: 'Une source de vérité, plusieurs projections', tagline: 'Calculer une fois, matérialiser, servir par l’interface adaptée',
+    regle: "<b>Calculer chaque jointure et chaque produit une seule fois, le matérialiser, puis le servir via l'interface adaptée à chaque consommateur — sans jamais laisser un consommateur rejoindre en live l'entrepôt analytique sous charge.</b> Un modèle logique unique, plusieurs projections physiques taillées par profil d'accès.",
+    chez_nous: "L'intuition « stocker le modèle dans plusieurs configurations » est exactement cela. La fraîcheur hétérogène est absorbée au passage : chaque projection est rafraîchie à la cadence de <i>son</i> consommateur, ce qui règle le besoin de départ sans empiler un modèle par palier de fréquence.",
+    corrige: ['quatre-roles', 'sans-interface', 'empilement'],
+    tags: ['service', 'archi']
+  },
+  {
+    id: 'vues', fam: 'service', icon: 'oeil', repere: '10',
+    name: 'Les vues exposent, les procédures construisent', tagline: 'La jointure est un acte, écrit une fois dans une vue',
+    regle: "Dans un entrepôt, une jointure n'est <b>pas un objet stocké</b> — contrairement à une relation Power BI, qui porte direction et cardinalité. La base stocke la <b>matière</b> de la jointure (tables bien formées, clés propres), pas son <b>comportement</b>. La jointure est un <b>acte</b> : on l'écrit dans une requête, ou une fois pour toutes dans une <b>vue</b>.",
+    chez_nous: "D'où le partage des rôles : <b>procédures = construire les marts</b> (la transformation qui alimente l'étoile, orchestrée par ADF) ; <b>vues = exposer les marts</b> (l'interface de consommation). On ne consomme pas une plateforme via des procédures stockées : pas de <i>folding</i>, et fragile en import.",
+    garde: "<b>Le piège :</b> pour un modèle Power BI en import, ne pas tout aplatir dans une grosse vue pré-jointe — cela casse la compression et l'efficacité de l'étoile. On expose des <b>vues minces par dimension et par fait</b>, et on laisse Power BI rebâtir l'étoile sur des clés propres. Les vues larges aplaties sont réservées aux usages Excel et SQL ad-hoc.",
+    corrige: ['quatre-roles', 'sans-interface'],
+    tags: ['service', 'modele']
   }
 ];
 
@@ -1732,7 +2029,7 @@ var RELATIONS = [
   { n: 7,  de: 'Lot_historique[ID_lot]', vers: 'Lot[ID_lot]', lot: 'simple', cible: 'Sens unique (Lot → Lot_historique)' },
   { n: 8,  de: 'Lot_historique[Date_mise_en_service]', vers: 'Calendrier_lot_historique_date_mise_en_service[Date]', lot: 'simple', cible: 'Sens unique (Calendrier → Lot_historique)' },
   { n: 9,  de: 'Copropriete[ID_patrimoine]', vers: 'Patrimoine[ID_patrimoine]', lot: 'simple', cible: 'Sens unique (Patrimoine → Copropriete)' },
-  { n: 10, de: 'Client_historique[ID_client_annee_mois]', vers: 'Releve_compte_client_historique[ID_client_annee_mois]', lot: 'refonte', cible: 'À requalifier — relation fait-à-fait sur clé texte' },
+  { n: 10, de: 'Client_historique[ID_client_annee_mois]', vers: 'Releve_compte_client_historique[ID_client_annee_mois]', lot: 'refonte', cible: 'Consolidation de grain — fait-à-fait, même grain client × année-mois' },
   { n: 11, de: 'Client_historique[ID_client]', vers: 'Client[ID_client]', lot: 'simple', cible: 'Sens unique (Client → Client_historique)' },
   { n: 12, de: 'Patrimoine_lot_pivot[ID_lot]', vers: 'Lot[ID_lot]', lot: 'pont', cible: 'Pont — arbitrer' },
   { n: 13, de: 'Patrimoine_lot_pivot[ID_patrimoine]', vers: 'Patrimoine[ID_patrimoine]', lot: 'pont', cible: 'Pont — arbitrer' },
@@ -1745,7 +2042,7 @@ var RELATIONS = [
   { n: 20, de: 'Diagnostic[Date_debut_diagnostic]', vers: 'Calendrier_diagnostic[Date]', lot: 'simple', cible: 'Sens unique (Calendrier → Diagnostic)' },
   { n: 21, de: 'Intervention[ID_commande]', vers: 'Commande[ID_commande]', lot: 'simple', cible: 'Sens unique (Commande → Intervention)' },
   { n: 22, de: 'Calendrier_releve_compte_client_historique[Annee_mois]', vers: 'Releve_compte_client_historique[Annee_mois]', lot: 'refonte', cible: 'Clé date puis sens unique — many-to-many sur clé texte' },
-  { n: 23, de: 'Contentieux_client_historique[ID_client_annee_mois]', vers: 'Client_historique[ID_client_annee_mois]', lot: 'refonte', cible: 'À requalifier — relation fait-à-fait sur clé texte' },
+  { n: 23, de: 'Contentieux_client_historique[ID_client_annee_mois]', vers: 'Client_historique[ID_client_annee_mois]', lot: 'refonte', cible: 'Consolidation de grain — fait-à-fait, même grain client × année-mois' },
   { n: 24, de: 'Diagnostic_valeur[ID_diagnostic]', vers: 'Diagnostic[ID_diagnostic]', lot: 'simple', cible: 'Sens unique (Diagnostic → Diagnostic_valeur)' },
   { n: 25, de: 'Organisation_patrimoine_pivot[ID_patrimoine]', vers: 'Patrimoine[ID_patrimoine]', lot: 'pont', cible: 'Pont — arbitrer' },
   { n: 26, de: 'Organisation_patrimoine_pivot[ID_organisation]', vers: 'Organisation[ID_organisation]', lot: 'pont', cible: 'Pont — arbitrer' },
@@ -1807,52 +2104,55 @@ var DECISIONS = [
     pourquoi: 'C’est ce qui rend la bascule supportable pour les équipes projet.' }
 ];
 
-var JALONS = [
-  { n: 1, titre: 'Passer les relations en sens unique', jeton: 'Sur l’existant',
-    quoi: "Sur les modèles actuels, avant même la refonte. Traiter en priorité les 18 relations dimension ou calendrier → fait ; arbitrer ensuite les 11 relations de pont ; corriger les many-to-many en dernier.",
-    pourquoi: "Le plus gros gain d'ouverture pour le risque le plus faible. À valider par tests visuels sur les chiffres restitués." },
-  { n: 2, titre: 'Créer la colonne de date d’arrêté', jeton: 'Sur l’existant',
-    quoi: "<span class=\"tech\">Date_arrete</span> sur les tables historiques, idéalement via ADF dans le schéma <span class=\"tech\">DWH</span>.",
-    pourquoi: "Prérequis de l'incrémental <i>et</i> de la refonte des jointures calendrier. Sans elle, ni l'un ni l'autre n'est réalisable correctement." },
-  { n: 3, titre: 'Activer le rafraîchissement incrémental', jeton: 'Sur l’existant',
-    quoi: "Sur les 4 tables historiques prioritaires, en partition mensuelle. Tester les partitions avant de généraliser.",
-    pourquoi: "Gain direct sur les temps de rafraîchissement, et condition d'une cadence élevée sans surcoût." },
-  { n: 4, titre: 'Consolider le modèle central', jeton: 'Refonte',
-    quoi: "Construire le modèle « PRISME » unique en import sur Azure SQL, avec les relations propres, puis rebrancher les 18 applications en connexion live. Retirer DAILY, HOURLY et le chapeau composite.",
-    pourquoi: "À faire après stabilisation des étapes 1 à 3 : on consolide un modèle déjà corrigé, pas un modèle à corriger." },
-  { n: 5, titre: 'Simplifier les rôles de calendrier', jeton: 'Optionnel', differe: true,
-    quoi: "Fusionner les 8 calendriers en une dimension Date unique, avec <span class=\"tech\">USERELATIONSHIP</span> pour les rôles.",
-    pourquoi: "Lisibilité du modèle. Aucun gain de performance attendu : à arbitrer selon l'effort disponible." },
-  { n: 6, titre: 'Basculer en PPU', jeton: 'Déclenché par un plafond', differe: true,
-    quoi: "Si un besoin dépasse 8 rafraîchissements par jour, ou si un modèle approche 1 Go. En profiter pour adopter les <i>deployment pipelines</i> à la place du doublonnage DEV/PROD manuel.",
-    pourquoi: "Pas maintenant : rien ne le déclenche aujourd'hui. À chiffrer avant que le mur n'arrive, pas après." }
-];
-
 var CHARGE = [
-  { chantier: 'Reprise du sens de filtre', jalon: 1,
-    perimetre: '34 relations à revoir : 18 en bascule directe, 11 ponts à arbitrer, 5 refontes ou requalifications',
+  { chantier: 'Reprise du sens de filtre', horizon: 'court',
+    perimetre: '34 relations à revoir : 18 en bascule directe, 11 ponts à arbitrer, 5 refontes ou consolidations',
     effort: 'moyen', risque: 'moyen',
     note: 'Le risque tient aux tests de non-régression sur les chiffres, pas à la manipulation.' },
-  { chantier: 'Colonne de date d’arrêté', jalon: 2,
+  { chantier: 'Colonne de date d’arrêté', horizon: 'court',
     perimetre: '4 tables historiques, plus l’adaptation ADF / DWH',
     effort: 'moyen', risque: 'faible',
-    note: 'Ajout de colonne, sans modification de l’existant.' },
-  { chantier: 'Rafraîchissement incrémental', jalon: 3,
+    note: 'Ajout de colonne, sans modification de l’existant. Prérequis de l’incrémental.' },
+  { chantier: 'Rafraîchissement incrémental', horizon: 'court',
     perimetre: 'Configuration sur 4 tables prioritaires, plus le test des partitions',
     effort: 'faible', risque: 'faible',
     note: 'Réversible : on peut revenir au full sans rien perdre.' },
-  { chantier: 'Consolidation du modèle central', jalon: 4,
-    perimetre: 'Reconstruction d’un modèle import unique, plus rebranchement des 18 applis en live',
+  { chantier: 'Schéma d’exposition SEM', horizon: 'court',
+    perimetre: 'Vues minces par dimension et par fait, plus quelques vues larges métier',
+    effort: 'moyen', risque: 'faible',
+    note: 'Le contrat qui découple. Montée en compétence sur les vues à prévoir.' },
+  { chantier: 'Tables de service pour les API', horizon: 'court',
+    perimetre: 'Tables pré-jointes matérialisées et indexées, par procédures et ADF',
+    effort: 'moyen', risque: 'faible',
+    note: 'Extension de la pratique « tables via procédures » déjà maîtrisée.' },
+  { chantier: 'Consolidation du modèle central', horizon: 'court',
+    perimetre: 'Modèle import unique sur les vues SEM, plus rebranchement des 18 applis en live',
     effort: 'eleve', risque: 'moyen',
-    note: 'À faire après stabilisation des chantiers 1 à 3.' },
-  { chantier: 'Simplification des calendriers', jalon: 5,
+    note: 'À faire après stabilisation des trois premiers chantiers.' },
+  { chantier: 'Simplification des calendriers', horizon: 'court',
     perimetre: 'Fusion optionnelle des 8 calendriers',
     effort: 'moyen', risque: 'faible',
     note: 'Optionnel. Lisibilité, pas performance.' },
-  { chantier: 'Décision de licence (PPU)', jalon: 6,
+  { chantier: 'Isolation de charge des API', horizon: 'moyen',
+    perimetre: 'Base de service distincte, réplica en lecture ou cache Redis',
+    effort: 'eleve', risque: 'moyen',
+    note: 'Dimensionnement suspendu au fork transactionnel (cas A ou B).' },
+  { chantier: 'Couche d’API interne', horizon: 'moyen',
+    perimetre: 'Azure Functions / App Service / API Management devant le store de service',
+    effort: 'eleve', risque: 'moyen',
+    note: 'Contrats versionnés, cache, gouvernance.' },
+  { chantier: 'Pipelines d’ingestion (si cas A)', horizon: 'moyen',
+    perimetre: 'CDC depuis les stores opérationnels des services conteneurisés',
+    effort: 'eleve', risque: 'moyen',
+    note: 'N’existe que si le fork est tranché en faveur du cas A.' },
+  { chantier: 'Décision de licence (PPU)', horizon: 'moyen',
     perimetre: 'Chiffrage PPU contre capacité dédiée, puis adoption des pipelines',
     effort: 'faible', risque: 'faible',
-    note: 'Travail d’analyse, pas de mise en œuvre.' }
+    note: 'Travail d’analyse, pas de mise en œuvre.' },
+  { chantier: 'Évaluation du socle unifié', horizon: 'long',
+    perimetre: 'Fabric / Direct Lake ou couche sémantique-API, selon la trajectoire',
+    effort: 'eleve', risque: 'eleve',
+    note: 'Spécifications et tarifs à vérifier au moment du choix.' }
 ];
 
 var RESULTAT = [
@@ -1870,16 +2170,17 @@ var RESULTAT = [
     apres: 'Pro tant qu’on reste sous 8 refresh/jour et 1 Go ; PPU au premier mur' }
 ];
 
-/* Ce que le dossier pose sans le fermer. */
+/* Ce qui est a mesurer ou a cadrer - a distinguer des quatre decisions
+   ouvertes, qui relevent d'un arbitrage et non d'un travail. */
 var OUVERTURES = [
   { icon: 'loupe', t: 'Mesurer avant et après',
-    d: "Le dossier raisonne sur des causes structurelles, pas sur des temps relevés. Avant l'étape 4, relever les temps par visuel à l'Analyseur de performances, la durée de chaque rafraîchissement et le poids par colonne au VertiPaq Analyzer : c'est ce qui permettra de dire ce que les étapes 1 à 3 ont réellement rapporté." },
+    d: "Le dossier raisonne sur des causes structurelles, pas sur des temps relevés. Avant la consolidation, relever les temps par visuel à l'Analyseur de performances, la durée de chaque rafraîchissement et le poids par colonne au VertiPaq Analyzer : c'est ce qui permettra de dire ce que les premiers chantiers ont réellement rapporté." },
   { icon: 'balance', t: 'Arbitrer les onze relations de pont',
     d: "C'est le seul lot qui demande une décision de modélisation plutôt qu'une application de règle. Chaque pont se tranche en regardant les mesures qui le traversent — sens unique plus propagation par mesure, ou bidirectionnel délibéré sur un seul côté." },
-  { icon: 'code', t: 'Requalifier les relations fait-à-fait',
-    d: "Les relations #10 et #23 relient deux faits sur une clé texte <span class=\"tech\">..._annee_mois</span>. Avant de choisir un sens, il faut décider si ce sont de vraies relations ou si l'une des deux tables est en réalité une dimension déguisée." },
-  { icon: 'euro', t: 'Chiffrer PPU contre capacité',
-    d: "À l'échelle actuelle — environ 134 utilisateurs actifs — PPU est <i>vraisemblablement</i> plus économique qu'une capacité dédiée. Le mot est important : ce n'est pas chiffré. À faire avant que l'un des deux plafonds ne soit atteint, pas au moment où il le sera." }
+  { icon: 'oeil', t: 'Écrire le contrat des vues SEM',
+    d: "Une vue n'est un contrat que si quelqu'un s'engage dessus : nommage, colonnes garanties, politique de changement. Sans cet engagement écrit, le schéma d'exposition redevient une couche technique de plus, et les consommateurs retourneront aux tables brutes." },
+  { icon: 'cycle', t: 'Vérifier l’écart DEV / PROD',
+    d: "Tous les relevés de ce dossier portent sur les versions DEV, branchées sur <span class=\"tech\">entrepot-dev</span>. Le doublonnage étant manuel, les versions PROD sont <i>réputées</i> identiques — à confirmer avant la bascule, car un écart invaliderait une partie des comptes." }
 ];
 
 /* Le releve factuel, tel qu'extrait des definitions. */
@@ -1901,6 +2202,262 @@ var FILTRES_LOT = [
   { v: 'simple', t: 'Bascule directe' },
   { v: 'pont', t: 'Ponts à arbitrer' },
   { v: 'refonte', t: 'À refondre' }
+];
+
+/* ===========================================================================
+   Le changement de cadre : d'une architecture BI a une plateforme de service.
+
+   Cette section n'existait pas dans la premiere version du dossier. Elle
+   repose sur un constat de perimetre : PRISME a ete concu comme un modele
+   semantique Power BI faisant a la fois couche d'exposition libre-service et
+   socle des applications BI ; l'arrivee des API externes et des applis
+   conteneurisees ajoute deux profils de plus, qu'un modele semantique ne sait
+   pas servir.
+   =========================================================================== */
+
+/* Les quatre profils a servir. C'est ce tableau qui a fait changer le dossier
+   de nature : tant qu'il n'y avait que la BI, un modele semantique suffisait. */
+var CONSOMMATEURS = [
+  { nom: 'Applications Power BI', icon: 'tableur',
+    acces: 'Analytique — agrégations, jointures larges',
+    fraicheur: 'Par table, 1 à 4×/jour', charge: 'Batch, bornée',
+    sert: 'Vues minces par dimension et par fait, en import' },
+  { nom: 'Collaborateurs (Excel, analystes)', icon: 'loupe',
+    acces: 'Exploration libre-service, contenu pré-joint',
+    fraicheur: 'Quotidienne suffit souvent', charge: 'Ad-hoc, à borner',
+    sert: 'Vues larges métier, dénormalisées' },
+  { nom: 'Endpoints API externes', icon: 'partage',
+    acces: 'Partage d’information quotidien',
+    fraicheur: '1×/jour', charge: 'Faible, batch',
+    sert: 'Tables quotidiennes dénormalisées, indexées' },
+  { nom: 'API internes (applis conteneurisées)', icon: 'api',
+    acces: '<b>Précalculé</b> (lecture) <b>+ transactionnel</b>',
+    fraicheur: 'Précalc : périodique ; transac : temps réel',
+    charge: 'Potentiellement forte, latence-sensible',
+    sert: 'Tables de service indexées, et cache si temps réel' }
+];
+
+/* Les deux familles d'acces. Elles ne se reconcilient pas dans un seul store :
+   c'est la raison d'etre des trois etages. */
+var FAMILLES_ACCES = [
+  { fam: 'archi', titre: 'Analytique', qui: 'Power BI, Excel, endpoints quotidiens',
+    profil: 'Requêtes lourdes, agrégations, jointures larges, fraîcheur de quelques minutes, batch.',
+    verdict: 'L’entrepôt Azure SQL est fait pour ça.', bon: true },
+  { fam: 'service', titre: 'Opérationnel / transactionnel', qui: 'API internes des conteneurs',
+    profil: 'Accès ligne à ligne, basse latence, forte concurrence, potentiellement en écriture.',
+    verdict: 'L’entrepôt analytique fait ça <b>mal sous charge</b>. Servir ces appels par des jointures live sur le DWH est la pire version du « faire exploser la requête ».', bon: false }
+];
+
+/* La cible a trois etages. Le dernier porte plusieurs sorties : un meme etage,
+   plusieurs interfaces. */
+var ETAGES_CIBLE = [
+  { type: 'couche', fam: 'service', role: 'Étage opérationnel (OLTP)',
+    titre: 'Store transactionnel — séparé du DWH',
+    note: 'Lignes, écritures, concurrence. Système de référence des écritures et transactions des applis conteneurisées. <b>Ce n’est pas l’entrepôt</b>.',
+    jetons: ['Lignes', 'Écritures', 'Basse latence'] },
+  { type: 'lien', etat: 'sain', mode: 'ADF / CDC (ingestion)',
+    note: 'Sens unique : on n’écrit jamais du transactionnel dans le DWH.' },
+  { type: 'couche', fam: 'archi', role: 'Étage analytique',
+    titre: 'DWH Azure SQL — source de vérité analytique',
+    note: 'Colonnes, agrégations, batch. Schéma en étoile plus les procédures de transformation orchestrées par ADF. C’est ici que les produits de données sont fabriqués.',
+    jetons: ['Étoile', 'Procédures ADF', 'Batch'] },
+  { type: 'lien', etat: 'sain', mode: 'Matérialisation',
+    note: 'Procédures ADF ou vues indexées : la jointure est calculée une fois.' },
+  { type: 'couche', fam: 'service', role: 'Étage de service',
+    titre: 'Produits pré-joints et caches, une interface par profil',
+    note: 'Aucun consommateur ne rejoint en live l’entrepôt analytique sous charge.',
+    sorties: [
+      { titre: 'Vues minces (dim / fait)', note: 'Power BI reconstruit l’étoile de son côté.', jeton: 'Power BI import' },
+      { titre: 'Vues larges métier', note: 'Contenu pré-joint, lisible sans SQL ni DAX.', jeton: 'Excel / collaborateurs' },
+      { titre: 'Tables quotidiennes', note: 'Dénormalisées et indexées, selon le contrat de partage.', jeton: 'API externes' },
+      { titre: 'Tables de service + cache', note: 'Indexées sur les clés d’accès, lecture précalculée.', jeton: 'API internes' }
+    ] }
+];
+
+/* Le fork transactionnel : le point de decision qui commande le dimensionnement
+   de l'etage operationnel. Le mot « transactionnel » recouvre deux cas tres
+   differents, et la question « qui possede la donnee » les separe. */
+var FORK = [
+  { lettre: 'A', fam: 'service', titre: 'Les conteneurs possèdent leur donnée',
+    hypothese: 'Les applis conteneurisées écrivent leur propre donnée de référence.',
+    consequence: "C'est <b>leur</b> store opérationnel qu'elles possèdent — le pattern microservices habituel : chaque service possède ses données. La plateforme data <b>n'est pas</b> cet OLTP : elle <b>ingère</b> depuis ces stores vers le DWH pour l'analytique, et sert en retour des produits précalculés.",
+    travail: 'Pas d’OLTP à construire côté plateforme. Le travail est constitué de <b>pipelines d’ingestion</b> (CDC).',
+    probable: true },
+  { lettre: 'B', fam: 'cadre', titre: 'La plateforme sert des lectures temps réel',
+    hypothese: 'On attend de la plateforme data qu’elle serve des lectures opérationnelles quasi temps réel.',
+    consequence: "C'est un <b>store de service plus cache</b> — réplica en lecture, Redis — et non un OLTP à bâtir, mais avec <b>isolation de charge</b> vis-à-vis du DWH analytique.",
+    travail: 'Une <b>couche de service à faible latence</b> à concevoir et à exploiter.',
+    probable: false }
+];
+
+/* ===========================================================================
+   Ou vivent les jointures : la boite a outils SQL.
+
+   Point d'attention de lecture : l'equipe est a l'aise avec les tables et les
+   procedures stockees, moins avec les vues, les vues indexees et les fonctions
+   table. Cette partie est donc ecrite pour eux, pas pour un DBA.
+   =========================================================================== */
+var OBJETS_SQL = [
+  { objet: 'Tables', connu: true,
+    quoi: 'Stockent les données : dimensions et faits.',
+    apporte: 'La <b>matière</b> de la jointure — clés propres, grain net.',
+    quand: 'Toujours. C’est le socle de tout le reste.' },
+  { objet: 'Vues', connu: false,
+    quoi: 'Des requêtes <span class="tech">SELECT</span> enregistrées, <b>sans duplication de données</b>.',
+    apporte: 'Le <span class="tech">JOIN</span> écrit une fois, réutilisé partout. Bon <i>query folding</i> vers Power BI en import.',
+    quand: 'C’est <b>l’objet de l’exposition</b> : le contrat que voient les consommateurs.' },
+  { objet: 'Vues indexées', connu: false,
+    quoi: '<span class="tech">WITH SCHEMABINDING</span> plus un index cluster unique : le résultat est <b>persisté et maintenu automatiquement</b>. L’équivalent Azure SQL des « vues matérialisées ».',
+    apporte: 'Le levier « pré-joint et pré-agrégé rapide ».',
+    quand: 'Sur les jointures et agrégations lourdes et fréquentes.' },
+  { objet: 'Fonctions table (inline TVF)', connu: false,
+    quoi: 'Des vues <b>paramétrables</b>.',
+    apporte: 'Une vue à laquelle on passe un argument.',
+    quand: 'Quand un paramètre est nécessaire. <b>Éviter les fonctions scalaires</b> en chemin chaud.' },
+  { objet: 'Schémas', connu: true,
+    quoi: 'Des espaces de noms.',
+    apporte: 'Séparer le brut, l’étoile et l’exposition.',
+    quand: 'Dès la mise en place du contrat — c’est ce que fera le schéma <span class="tech">SEM</span>.' },
+  { objet: 'Clés étrangères', connu: true,
+    quoi: '<b>Documentent</b> les relations. Elles n’exécutent aucune jointure.',
+    apporte: 'Permettent à Power BI de <b>recréer automatiquement les relations à l’import, en sens unique</b> — c’est-à-dire le bon défaut, gratuitement.',
+    quand: 'Sur toutes les clés de l’étoile.' }
+];
+
+/* Les quatre raisons qui font de la vue le pivot de la cible. */
+var ENJEUX_VUES = [
+  { icon: 'separer', t: 'Un contrat qui découple',
+    d: "Les consommateurs dépendent de la vue, pas des tables brutes. On peut refondre les tables sous-jacentes sans casser les 18 applications ni les API : c'est exactement ce qui manque aujourd'hui." },
+  { icon: 'cle', t: 'Une définition unique',
+    d: "La jointure et la logique métier sont écrites une fois et réutilisées partout. Plus de règle recopiée dans dix-huit modèles projet, avec les dérives que cela suppose." },
+  { icon: 'oeil', t: 'Curation et sécurité',
+    d: "Noms lisibles, colonnes utiles, et rien d'autre. Les droits se donnent sur les vues, et le filtrage de lignes s'y pose — ce que des tables brutes exposées ne permettent pas." },
+  { icon: 'plug', t: 'Pas de duplication, folding propre',
+    d: "Une vue simple ne stocke rien : elle ne coûte ni espace ni rafraîchissement. Et elle se replie proprement vers Power BI en import, ce qu'une procédure stockée ne fait pas." }
+];
+
+/* ===========================================================================
+   Les cinq projections physiques d'un meme modele logique.
+   =========================================================================== */
+var CONFIGURATIONS = [
+  { nom: 'Étoile normalisée', fam: 'modele',
+    forme: 'Tables <span class="tech">DWH</span> + vues minces <span class="tech">SEM</span>',
+    sert: 'Power BI en import', cadence: 'Batch incrémental, par table',
+    objets: 'Dimensions (Lot, Patrimoine, Client, Organisation, Géographie, Calendrier…) et faits' },
+  { nom: 'Vues larges métier', fam: 'service',
+    forme: 'Vues — ou tables matérialisées — dénormalisées',
+    sert: 'Excel et collaborateurs', cadence: 'Batch quotidien',
+    objets: 'ex. <span class="tech">SEM.vLot_analyse</span> : Lot + Patrimoine + Géographie + occupant' },
+  { nom: 'Tables quotidiennes de partage', fam: 'service',
+    forme: 'Tables dénormalisées, indexées',
+    sert: 'Endpoints API externes', cadence: '1×/jour',
+    objets: 'Selon le contrat de partage' },
+  { nom: 'Tables de service API', fam: 'service',
+    forme: 'Tables dénormalisées, indexées sur les clés d’accès',
+    sert: 'API internes précalculées', cadence: 'Fréquente, selon la table',
+    objets: 'ex. lookup par <span class="tech">ID_client</span>, <span class="tech">ID_lot</span>' },
+  { nom: 'Cache de lecture', fam: 'cadre', conditionnel: 'Cas B seulement',
+    forme: 'Réplica en lecture ou Redis',
+    sert: 'API internes quasi temps réel', cadence: 'Temps réel / cache',
+    objets: 'Le sous-ensemble chaud' }
+];
+
+/* ===========================================================================
+   Les trois socles cibles.
+
+   Reserve portee par le dossier source et conservee telle quelle : les
+   specifications et les tarifs des produits tiers sont a verifier au moment
+   du choix. Rien ici ne tient lieu de comparatif commercial.
+   =========================================================================== */
+var SOCLES = [
+  { id: 'vues', fam: 'modele', titre: 'Vues SQL natives', sous: '+ un modèle Power BI mince',
+    quoi: "Les jointures vivent dans des <b>vues SQL</b> : définition unique, importable, sans nouvelle plateforme. Power BI en import et les API lisent ces vues et ces tables de service ; un modèle Power BI partagé mince, en live, sert l'exploration Excel et BI des collaborateurs.",
+    sousgroupes: [
+      { titre: 'Ce que ça apporte', note: 'Environ 80 % du bénéfice, sans coût de plateforme ni nouvelle compétence d’exploitation.' },
+      { titre: 'Ce que ça coûte', note: 'Une montée en compétence sur les vues, les vues indexées et les fonctions table.' },
+      { titre: 'Mode de consommation', note: 'Import figé — compatible avec la fraîcheur par table et la protection du DWH.' }
+    ],
+    verdict: 'Recommandé à court et moyen terme.', retenu: true },
+  { id: 'semantique', fam: 'service', titre: 'Couche sémantique / headless BI', sous: 'qui sert aussi des API — ex. Cube',
+    quoi: "Définit entités, jointures et métriques <b>une fois</b>, et les expose en <b>SQL, REST et GraphQL</b>, avec cache et pré-agrégations. Endpoints et conteneurs consommeraient l'API de la couche, qui protège l'entrepôt par son cache. Autres acteurs : AtScale (fort côté Excel et OLAP), dbt Semantic Layer (si dbt est adopté), Looker / LookML.",
+    sousgroupes: [
+      { titre: 'Ce que ça apporte', note: 'Une définition unique pour deux mondes — BI et API — au lieu de deux définitions à tenir alignées.' },
+      { titre: 'Ce que ça coûte', note: 'Une nouvelle plateforme : compétences, exploitation, dépendance de disponibilité.' },
+      { titre: 'Mode de consommation', note: 'Plutôt live, en proxy de requête — à concilier avec l’objectif d’import figé.' }
+    ],
+    verdict: 'Pertinent <b>si</b> le besoin API se confirme.', retenu: false },
+  { id: 'fabric', fam: 'archi', titre: 'Microsoft Fabric', sous: 'OneLake + Direct Lake',
+    quoi: "La convergence Microsoft native : une copie dans <b>OneLake</b>, servie à la BI <b>sans import ni DirectQuery</b> — Direct Lake dissout la duplication d'import entre les applications — servie au SQL, et exploitable côté API.",
+    sousgroupes: [
+      { titre: 'Ce que ça apporte', note: 'Fin de la duplication d’import entre les 18 applications ; cohérent avec la posture tout-Microsoft.' },
+      { titre: 'Ce que ça coûte', note: 'Une évolution de plateforme <i>et</i> de licence.' },
+      { titre: 'Mode de consommation', note: 'Live gouverné.' }
+    ],
+    verdict: 'Horizon stratégique, au-delà de l’année.', retenu: false }
+];
+
+var SOCLES_TABLE = [
+  { critere: 'Où vit la définition des jointures', vues: 'Vues SQL, dans l’entrepôt', semantique: 'Dans la couche sémantique', fabric: 'Dans le modèle OneLake' },
+  { critere: 'Sert la BI', vues: 'oui', semantique: 'oui', fabric: 'oui' },
+  { critere: 'Sert des API', vues: 'partiel', semantique: 'oui', fabric: 'partiel' },
+  { critere: 'Protège le DWH de la charge', vues: 'oui', semantique: 'oui', fabric: 'oui' },
+  { critere: 'Mode de consommation', vues: 'Import figé', semantique: 'Live (proxy)', fabric: 'Live gouverné' },
+  { critere: 'Nouvelle plateforme à exploiter', vues: 'non', semantique: 'oui', fabric: 'oui' },
+  { critere: 'Change la licence', vues: 'non', semantique: 'non', fabric: 'oui' },
+  { critere: 'Horizon', vues: 'Maintenant', semantique: 'Si le besoin API se confirme', fabric: 'An +' }
+];
+
+var SOCLES_VALEURS = {
+  oui:     { texte: 'Oui', couleur: 'vert' },
+  non:     { texte: 'Non', couleur: '' },
+  partiel: { texte: 'Partiellement', couleur: 'ambre' }
+};
+
+/* ===========================================================================
+   La feuille de route, par horizon.
+   =========================================================================== */
+var HORIZONS = [
+  { id: 'court', fam: 'modele', titre: 'Court terme', quand: 'Semaines à mois',
+    cadre: 'Sur l’existant, en natif Azure SQL et licence Pro. Risque faible, aucune nouvelle plateforme.',
+    etapes: [
+      { t: 'Corriger la conception', d: 'Relations en sens unique, en commençant par les 18 bascules directes. C’est le plus gros gain d’ouverture.' },
+      { t: 'Créer la colonne <span class="tech">Date_arrete</span>', d: 'Sur les 4 tables historiques, via ADF dans <span class="tech">DWH</span>. Prérequis de tout le reste.' },
+      { t: 'Activer l’incrémental', d: 'Sur ces 4 tables, en partition mensuelle.' },
+      { t: 'Introduire le schéma <span class="tech">SEM</span>', d: 'Vues minces par dimension et par fait, plus quelques vues larges métier : le contrat unique.' },
+      { t: 'Rebrancher BI et Excel sur <span class="tech">SEM</span>', d: 'Les modèles d’application en import et les classeurs Excel pointent les vues, plus les tables brutes.' },
+      { t: 'Alimenter les API par des tables pré-jointes', d: 'Endpoints quotidiens et API internes précalculées lisent des tables matérialisées par procédures et ADF, indexées. <b>Aucune jointure live.</b> C’est l’extension naturelle de la pratique « tables via procédures » déjà maîtrisée.' }
+    ],
+    resultat: 'BI alimentée, collaborateurs servis en pré-joint, API alimentées, entrepôt protégé, fréquences hétérogènes gérées — <b>sans nouvelle plateforme</b>.' },
+  { id: 'moyen', fam: 'service', titre: 'Moyen terme', quand: 'Trimestres',
+    cadre: 'Formaliser la séparation analytique / service, et isoler la charge des API.',
+    etapes: [
+      { t: 'Formaliser les produits de données', d: 'Un ensemble de produits matérialisés, chacun à sa cadence, avec son contrat et son propriétaire.' },
+      { t: 'Isoler la charge des API', d: 'Base de service distincte ou <b>réplica en lecture</b> selon le tier Azure SQL, ou <b>cache</b> (Azure Cache for Redis) pour les lookups chauds. Les conteneurs ne touchent jamais le DWH analytique.' },
+      { t: 'Poser une couche d’API interne', d: 'Devant le store de service : Azure Functions, App Service ou API Management. Contrats versionnés, cache, gouvernance.' },
+      { t: 'Trancher le fork transactionnel', d: 'Cas A ou cas B. Si cas A, mettre en place les pipelines d’ingestion CDC depuis les stores des services.' },
+      { t: 'Passer en PPU si les plafonds mordent', d: 'Débloque les 48 rafraîchissements par jour, les modèles plus gros, les <i>deployment pipelines</i> et l’endpoint XMLA.' }
+    ],
+    resultat: 'Les quatre profils sont servis par des interfaces distinctes, chacune dimensionnée pour sa charge.' },
+  { id: 'long', fam: 'archi', titre: 'Long terme', quand: 'An +',
+    cadre: 'Évaluer une couche gouvernée unifiée, selon la trajectoire prise.',
+    etapes: [
+      { t: 'Fabric / Direct Lake', d: 'Si la convergence Microsoft est la trajectoire : fin de la duplication d’import entre les 18 applications.' },
+      { t: 'Ou une couche sémantique-API', d: 'Type Cube, si les consommateurs hétérogènes BI + API se multiplient et qu’on veut une définition unique pour les deux mondes.' },
+      { t: 'Éventuellement un service polyglotte', d: 'Analytique, plus document ou clé-valeur pour les chemins API chauds — tous alimentés depuis les produits gouvernés.' }
+    ],
+    resultat: 'Une définition unique, plusieurs consommateurs, sans duplication — au prix d’une plateforme.' }
+];
+
+/* Les quatre points que le dossier pose sans les fermer. */
+var DECISIONS_OUVERTES = [
+  { icon: 'separer', t: 'Le fork transactionnel',
+    d: "Les conteneurs possèdent-ils leur donnée transactionnelle — cas A, la plateforme reste analytique plus ingestion — ou attend-on d'elle un service de lecture temps réel — cas B, store de service plus cache ? <b>Cette réponse décide du dimensionnement de l'étage opérationnel</b>, et rien d'autre ne peut être chiffré avant elle." },
+  { icon: 'euro', t: 'La licence',
+    d: "Rester en Pro tant qu'on est sous 8 rafraîchissements par jour et sous 1 Go par modèle ; passer en PPU au premier mur. Le chiffrage PPU contre capacité dédiée reste à faire — à ~134 utilisateurs actifs, PPU est <i>vraisemblablement</i> plus économique, mais ce n'est pas établi." },
+  { icon: 'boussole', t: 'Le socle cible',
+    d: "Vues SQL natives maintenant, c'est acquis. Couche sémantique-API ou Fabric : à évaluer quand le besoin API se confirme, et pas avant — les spécifications et les tarifs sont à vérifier au moment du choix, pas sur la foi de ce document." },
+  { icon: 'cle', t: 'La consolidation de grain',
+    d: "Faut-il fusionner dans le DWH les tables historiques de même grain — client × année-mois ? C'est la vraie réponse aux relations fait-à-fait #10 et #23, et elle vaut mieux qu'un rafistolage DAX. À trancher avec les métiers concernés." }
 ];
 
 /* ===========================================================================
@@ -2051,6 +2608,14 @@ var FILTRES_LOT = [
       + (c.jetons && c.jetons.length
           ? '<div class="couche-jetons">' + c.jetons.map(function (j) {
               return '<span class="jeton">' + ech(j) + '</span>'; }).join('') + '</div>'
+          : '')
+      /* Un etage peut se terminer par plusieurs sorties : c'est le cas de
+         l'etage de service, qui sert quatre profils par quatre interfaces. */
+      + (c.sorties && c.sorties.length
+          ? '<div class="sorties">' + c.sorties.map(function (o) {
+              return '<div class="sortie"><h5>' + ech(o.titre) + '</h5>'
+                + '<p>' + ech(o.note) + '</p>'
+                + '<span class="jeton">' + ech(o.jeton) + '</span></div>'; }).join('') + '</div>'
           : '')
       + '</div>';
   }
@@ -2312,24 +2877,165 @@ var FILTRES_LOT = [
 
   /* ------------------------------------------------------------- bascule */
 
-  function poserJalons() {
-    $('jalons').innerHTML = JALONS.map(function (j) {
-      return '<div class="jalon' + (j.differe ? ' differe' : '') + '">'
-        + '<div class="rang">' + j.n + '</div>'
-        + '<div><h4>' + ech(j.titre)
-        + '<span class="jeton ' + (j.differe ? '' : 'vert') + '">' + ech(j.jeton) + '</span></h4>'
-        + '<p>' + j.quoi + '</p>'
-        + '<p class="jalon-pourquoi">' + j.pourquoi + '</p></div></div>';
+  /* ----------------------------------------------- le changement de cadre */
+
+  function poserFamillesAcces() {
+    $('familles-acces').innerHTML = FAMILLES_ACCES.map(function (f) {
+      return '<section class="carte ' + FAM[f.fam].classe + '" style="border-top:3px solid var(--fam)">'
+        + '<header><div><h3>' + ech(f.titre) + '</h3>'
+        + '<p>' + ech(f.qui) + '</p></div>'
+        + '<span class="jeton ' + (f.bon ? 'vert' : 'rouge') + '">'
+        + svg(f.bon ? OUI : ALERTE, 'mini-icone')
+        + (f.bon ? 'Le DWH est fait pour ça' : 'Le DWH fait ça mal') + '</span></header>'
+        + '<div class="corps" style="display:flex;flex-direction:column;gap:11px">'
+        + '<div class="champ"><div class="etiquette-champ">Profil de requête</div>'
+        + '<p>' + ech(f.profil) + '</p></div>'
+        + '<div class="versus"><p>' + f.verdict + '</p></div>'
+        + '</div></section>';
+    }).join('');
+  }
+
+  function poserFork() {
+    $('fork').innerHTML = FORK.map(function (c) {
+      return '<div class="famille-carte ' + FAM[c.fam].classe + '">'
+        + '<div class="famille-tete">'
+        + '<span class="famille-nom"><span class="cas-lettre">' + ech(c.lettre) + '</span>'
+        + ech(c.titre)
+        + (c.probable ? '<span class="jeton vert" style="margin-left:auto">Le plus probable</span>' : '')
+        + '</span>'
+        + '<p class="famille-question">' + ech(c.hypothese) + '</p></div>'
+        + '<div class="sous-groupe"><div class="sous-titre">Ce que cela implique</div>'
+        + '<div class="sous-note">' + c.consequence + '</div></div>'
+        + '<div class="socle-pied"><b>Travail induit —</b> ' + c.travail + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* --------------------------------------------------- les objets SQL */
+
+  function poserObjetsSql() {
+    $('objets-sql').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Objet</th><th>Ce que c’est</th><th>Ce qu’il apporte</th><th>Quand l’employer</th>'
+      + '</tr></thead><tbody>'
+      + OBJETS_SQL.map(function (o) {
+        return '<tr><td><b>' + ech(o.objet) + '</b>'
+          + (o.connu ? '' : '<br><span class="jeton ambre">Nouveau pour l’équipe</span>') + '</td>'
+          + '<td>' + o.quoi + '</td>'
+          + '<td>' + o.apporte + '</td>'
+          + '<td>' + o.quand + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function poserEnjeuxVues() {
+    $('enjeux-vues').innerHTML = ENJEUX_VUES.map(function (e) {
+      return '<div class="reflexe"><div class="embleme">' + svg(IC[e.icon]) + '</div>'
+        + '<div><h4>' + ech(e.t) + '</h4><p>' + e.d + '</p></div></div>';
+    }).join('');
+  }
+
+  /* -------------------------------------------------- les projections */
+
+  function poserConsommateurs() {
+    $('consommateurs').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Consommateur</th><th>Profil d’accès</th><th>Fraîcheur</th><th>Charge</th>'
+      + '<th>Ce qui le servira</th></tr></thead><tbody>'
+      + CONSOMMATEURS.map(function (c) {
+        return '<tr><td><b>' + ech(c.nom) + '</b></td>'
+          + '<td>' + c.acces + '</td>'
+          + '<td>' + ech(c.fraicheur) + '</td>'
+          + '<td>' + ech(c.charge) + '</td>'
+          + '<td>' + ech(c.sert) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function poserConfigurations() {
+    $('configurations').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Configuration</th><th>Forme physique</th><th>Sert</th><th>Cadence</th>'
+      + '<th>Objets réels concernés</th></tr></thead><tbody>'
+      + CONFIGURATIONS.map(function (c) {
+        return '<tr class="' + FAM[c.fam].classe + '">'
+          + '<td><span class="famille-cellule"><span class="pastille-fam"></span><b>'
+          + ech(c.nom) + '</b></span>'
+          + (c.conditionnel ? '<br><span class="jeton ambre">' + ech(c.conditionnel) + '</span>' : '') + '</td>'
+          + '<td>' + c.forme + '</td>'
+          + '<td>' + ech(c.sert) + '</td>'
+          + '<td>' + ech(c.cadence) + '</td>'
+          + '<td>' + c.objets + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  /* ------------------------------------------------------- les socles */
+
+  function poserSocles() {
+    $('socles').innerHTML = SOCLES.map(function (s) {
+      return '<div class="famille-carte ' + FAM[s.fam].classe + '">'
+        + '<div class="famille-tete">'
+        + '<span class="famille-nom"><span class="pastille-fam"></span>' + ech(s.titre)
+        + (s.retenu ? '<span class="jeton vert" style="margin-left:auto">Retenu</span>' : '')
+        + '</span>'
+        + '<p class="famille-question">' + ech(s.sous) + '</p></div>'
+        + '<p class="famille-propos">' + s.quoi + '</p>'
+        + s.sousgroupes.map(function (g) {
+            return '<div class="sous-groupe"><div class="sous-titre">' + ech(g.titre) + '</div>'
+              + '<div class="sous-note">' + g.note + '</div></div>';
+          }).join('')
+        + '<div class="socle-pied">' + s.verdict + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function poserSoclesTable() {
+    var cellule = function (v) {
+      var d = SOCLES_VALEURS[v];
+      return d ? '<span class="jeton ' + d.couleur + '">' + ech(d.texte) + '</span>' : ech(v);
+    };
+    $('socles-table').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Critère</th><th>Vues SQL natives</th><th>Couche sémantique</th><th>Fabric</th>'
+      + '</tr></thead><tbody>'
+      + SOCLES_TABLE.map(function (r) {
+        return '<tr><td><b>' + ech(r.critere) + '</b></td>'
+          + '<td>' + cellule(r.vues) + '</td>'
+          + '<td>' + cellule(r.semantique) + '</td>'
+          + '<td>' + cellule(r.fabric) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  /* -------------------------------------------------- la feuille de route */
+
+  function poserHorizons() {
+    $('horizons').innerHTML = HORIZONS.map(function (h) {
+      return '<section class="carte ' + FAM[h.fam].classe + '" style="border-top:3px solid var(--fam)">'
+        + '<header><div><h3>' + ech(h.titre) + '</h3>'
+        + '<p>' + ech(h.cadre) + '</p></div>'
+        + '<span class="jeton">' + ech(h.quand) + '</span></header>'
+        + '<div class="jalons">'
+        + h.etapes.map(function (e, i) {
+            return '<div class="jalon"><div class="rang">' + (i + 1) + '</div>'
+              + '<div><h4>' + e.t + '</h4><p>' + e.d + '</p></div></div>';
+          }).join('')
+        + '</div>'
+        + '<div class="socle-pied"><b>Au bout de cet horizon —</b> ' + h.resultat + '</div>'
+        + '</section>';
+    }).join('');
+  }
+
+  function poserDecisionsOuvertes() {
+    $('decisions-ouvertes').innerHTML = DECISIONS_OUVERTES.map(function (d) {
+      return '<div class="reflexe"><div class="embleme">' + svg(IC[d.icon]) + '</div>'
+        + '<div><h4>' + ech(d.t) + '</h4><p>' + d.d + '</p></div></div>';
     }).join('');
   }
 
   function poserCharge() {
     $('charge').innerHTML = '<div class="cadre-table"><table><thead><tr>'
-      + '<th class="num">Étape</th><th>Chantier</th><th>Périmètre concret</th>'
+      + '<th>Horizon</th><th>Chantier</th><th>Périmètre concret</th>'
       + '<th>Effort</th><th>Risque</th><th>Précision</th>'
       + '</tr></thead><tbody>'
       + CHARGE.map(function (c) {
-        return '<tr><td class="num">' + c.jalon + '</td>'
+        var h = HORIZONS.filter(function (x) { return x.id === c.horizon; })[0];
+        return '<tr class="' + FAM[h.fam].classe + '">'
+          + '<td><span class="famille-cellule"><span class="pastille-fam"></span>'
+          + ech(h.titre) + '</span></td>'
           + '<td><b>' + ech(c.chantier) + '</b></td>'
           + '<td>' + ech(c.perimetre) + '</td>'
           + '<td>' + echelle(c.effort, 'effort') + '</td>'
@@ -2506,12 +3212,22 @@ var FILTRES_LOT = [
   poserPrincipes();
   poserDecisions();
   poserPlafonds();
+  poserConsommateurs();
+  poserFamillesAcces();
+  poserChaine('etages-cible', ETAGES_CIBLE);
+  poserFork();
+  poserObjetsSql();
+  poserEnjeuxVues();
+  poserConfigurations();
   poserCriteres();
   poserRelations();
   poserCodeArrete();
   poserIncremental();
-  poserJalons();
+  poserSocles();
+  poserSoclesTable();
+  poserHorizons();
   poserCharge();
+  poserDecisionsOuvertes();
   poserResultat();
   poserOuvertures();
   poserFaits();
