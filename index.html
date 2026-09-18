@@ -634,7 +634,10 @@ select {
 .impact.effort .marche.pleine { background: var(--ambre); }
 
 /* --------------------------------------------------------------- les fiches */
-.grille-fiches { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; align-items: start; }
+/* min() est indispensable : une piste minmax(380px, 1fr) ne peut pas
+   descendre sous 380 px, et la carte deborde alors d'un ecran de
+   390 px moins ses marges. */
+.grille-fiches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 14px; align-items: start; }
 
 .fiche { border-top: 3px solid var(--fam); }
 .fiche > header { align-items: flex-start; }
