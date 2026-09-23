@@ -988,6 +988,134 @@ select {
    permanence sur 29 fiches couterait plus cher que l'animation elle-meme. */
 .anim-encours { will-change: transform, opacity; }
 
+
+/* ===================================================================== */
+/* LE RAIL REPLIABLE                                                     */
+/* ===================================================================== */
+
+/* Le bouton est cree sans condition par le JavaScript ; sous 900 px le rail a
+   deja son propre repli - il devient une barre de titre derriere un bouton
+   « Menu », regle par le socle - et deux mecanismes de repli sur le meme
+   element se marcheraient dessus. On le masque donc explicitement en dehors
+   de son seuil : ne pas le positionner ne suffit pas, un bouton sans regle
+   de mise en page reste visible, en flux, et vient s'ecraser sur le menu
+   mobile. */
+.bascule-rail { display: none; }
+
+@media (min-width: 901px) {
+
+  /* Le bouton est cree par le JavaScript, comme tout le reste de cette
+     couche : le document n'est pas modifie. */
+  .bascule-rail {
+    display: grid;
+    position: absolute; top: 14px; right: -11px; z-index: 5;
+    width: 22px; height: 22px; padding: 0;
+    display: grid; place-items: center;
+    border: 1px solid var(--bord-fort); border-radius: 50%;
+    background: var(--surface); color: var(--encre-doux);
+    cursor: pointer; box-shadow: var(--ombre);
+    transition: color .12s, border-color .12s;
+  }
+  .bascule-rail:hover { color: var(--encre); border-color: var(--encre-tres-doux); }
+  .bascule-rail svg { width: 13px; height: 13px; }
+  .rail { position: sticky; }   /* deja pose par le socle ; repete pour l'ancrage du bouton */
+
+  /* ---- l'etat replie ---- */
+  /* Les libelles disparaissent, les pictogrammes restent : le rail garde sa
+     fonction de reperage, il ne fait que rendre sa largeur au contenu. */
+  .rail.replie .nav-libelle,
+  .rail.replie .marque-texte,
+  .rail.replie .rail-pied { opacity: 0; pointer-events: none; }
+
+  /* L'intitule de groupe n'a plus de place pour son mot : il se reduit au
+     filet qu'il etait deja implicitement - une separation entre familles. */
+  .rail.replie .nav-groupe {
+    height: 1px; padding: 0; margin: 9px 12px; overflow: hidden;
+    background: rgb(255 255 255 / 22%); color: transparent;
+  }
+
+  .rail.replie .nav button { justify-content: center; padding-left: 0; padding-right: 0; }
+  .rail.replie .marque { display: grid; place-items: center; padding: 0 8px; }
+  .rail.replie .marque .pastille { margin-bottom: 0; }
+  .rail.replie .bascule-rail { top: 12px; }
+
+  /* Le pied est retire du flux une fois replie, sinon il continue de pousser
+     la navigation vers le haut avec une hauteur qu'on ne voit plus. */
+  .rail.replie .rail-pied { height: 0; padding: 0; margin: 0; border: 0; }
+}
+
+/* ===================================================================== */
+/* LES EFFETS DE DEFILEMENT                                              */
+/* ===================================================================== */
+
+/* ---- la barre de progression de lecture ---- */
+/* Deux pixels en haut de l'ecran. Sur une page de 3 500 px - la feuille de
+   route en fait autant - c'est le seul repere qui dise ou l'on en est. */
+.progression-lecture {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0;
+  background: var(--petrole); z-index: 70; pointer-events: none;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ---- l'en-tete qui se condense ---- */
+/* Le titre de la page reste visible quand on descend : sur les pages longues,
+   on oublie sur quel onglet on se trouve. */
+.scene > .entete {
+  position: sticky; top: 0; z-index: 35;
+  background: var(--fond);
+  transition: padding .18s ease-out, box-shadow .18s ease-out;
+}
+.scene > .entete.condensee {
+  padding: 8px 0 9px;
+  box-shadow: 0 6px 14px -12px rgb(16 26 46 / 55%);
+}
+.scene > .entete.condensee h2 { font-size: 17px; }
+.scene > .entete.condensee p { display: none; }
+.entete h2 { transition: font-size .18s ease-out; }
+
+/* La barre de filtres se cale SOUS l'en-tete colle. Sans cette reserve, les
+   deux elements collants se superposent et la recherche passe dessous. */
+.vue > .barre-filtres { top: calc(var(--entete-haut, 0px) + 8px); }
+@media (max-width: 900px) {
+  /* Sur telephone, c'est le rail replie qui occupe le haut : l'en-tete ne
+     colle pas, et la barre de filtres retrouve son calage d'origine. */
+  .scene > .entete { position: static; }
+  .vue > .barre-filtres { top: calc(var(--rail-replie) + 6px); }
+}
+
+/* ---- le retour en haut ---- */
+.retour-haut {
+  position: fixed; right: 14px; bottom: 58px; z-index: 55;
+  width: 38px; height: 38px; display: grid; place-items: center;
+  border: 1px solid var(--bord-fort); border-radius: 50%;
+  background: var(--surface); color: var(--encre-doux);
+  cursor: pointer; box-shadow: var(--ombre); opacity: 0;
+  transition: color .12s, border-color .12s;
+}
+.retour-haut:hover { color: var(--encre); border-color: var(--encre-tres-doux); }
+.retour-haut svg { width: 17px; height: 17px; }
+.retour-haut[hidden] { display: none !important; }
+/* Sur telephone le panneau de reglages redescend dans le flux : le bouton
+   reprend sa place en bas a droite. */
+@media (max-width: 900px) { .retour-haut { bottom: 14px; } }
+
+/* ---- le relief des cartes au survol ---- */
+/* Purement CSS : la regle @media du theme le neutralise deja en mouvement
+   reduit, sans qu'on ait rien a faire en JavaScript. */
+.carte, .fiche, .miniature {
+  transition: transform .15s ease-out, box-shadow .15s ease-out;
+}
+.grille-fiches .fiche:hover, .miniature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px -6px rgb(32 56 100 / 18%);
+}
+
+/* A l'impression, rien de tout cela n'existe. */
+@media print {
+  .progression-lecture, .retour-haut, .bascule-rail { display: none !important; }
+  .scene > .entete { position: static; box-shadow: none; }
+}
+
 /* A l'impression, rien ne doit rester a mi-course : une page imprimee pendant
    une animation sortirait avec des blocs a moitie transparents. On force
    l'etat final, et on couvre aussi le cas ou l'impression part avant meme le
@@ -2916,6 +3044,14 @@ var AXES = [
      de reference et pas celui d'une page d'accueil. */
   var D = 260;
 
+  /* Cette couche est une IIFE separee de celle qui rend le guide : le svg()
+     du moteur de rendu ne lui est pas visible. On en garde une copie locale,
+     dans la meme forme, pour les deux boutons crees ci-dessous. */
+  function svg(trace) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"'
+      + ' stroke-linecap="round" stroke-linejoin="round">' + trace + '</svg>';
+  }
+
   /* -------------------------------------------------------- 1. le titre */
 
   /* Decoupe en MOTS, pas en lettres. « Ou part le temps dans un rapport
@@ -3169,6 +3305,156 @@ var AXES = [
     requete.addEventListener('change', function () { if (!anime_permis()) tout_reveler(); });
   }
 
+  /* ================================================================= */
+  /* LE RAIL REPLIABLE                                                   */
+  /* ================================================================= */
+
+  /* Cle de memoire distincte de celle du theme (guide-index-sql-theme,
+     guide-perf-powerbi-theme, dossier-prisme-theme) : ce reglage est propre
+     a la couche d'animation, pas au theme visuel, et les deux ne doivent pas
+     se marcher dessus si l'utilisateur choisit l'un sans l'autre. */
+  var CLE_RAIL = 'anim-rail-replie';
+
+  function rail_memorise() {
+    try { return localStorage.getItem(CLE_RAIL) === '1'; } catch (e) { return false; }
+  }
+  function rail_retenir(replie) {
+    try { localStorage.setItem(CLE_RAIL, replie ? '1' : '0'); } catch (e) {}
+  }
+
+  var FLECHE_GAUCHE = '<polyline points="15 18 9 12 15 6"/>';
+  var FLECHE_DROITE = '<polyline points="9 18 15 12 9 6"/>';
+
+  function installer_rail() {
+    var rail = document.querySelector('.rail');
+    var nav = document.getElementById('nav');
+    if (!rail || !nav) return;
+
+    /* Les boutons du rail portent aujourd'hui leur libelle en texte nu, a
+       cote de l'icone SVG - il n'y a pas de span dedie a masquer un par un.
+       On enveloppe chaque libelle dans un span, une fois, pour que le CSS
+       replie puisse le faire disparaitre sans toucher a l'icone. C'est la
+       seule modification de structure de toute la couche, et elle porte sur
+       du texte deja affiche : rien n'est perdu si on l'annule. */
+    var boutons = rail.querySelectorAll('.nav button, .bascule-nav');
+    for (var i = 0; i < boutons.length; i++) {
+      var b = boutons[i];
+      var noeuds = [];
+      for (var n = b.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3 && n.textContent.trim()) noeuds.push(n);
+      }
+      if (!noeuds.length) continue;
+      var enveloppe = document.createElement('span');
+      enveloppe.className = 'nav-libelle';
+      noeuds.forEach(function (n) { enveloppe.appendChild(n); });
+      /* remplace le dernier noeud texte par l'enveloppe, retire les autres */
+      b.insertBefore(enveloppe, null);
+    }
+
+    var bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'bascule-rail';
+    bouton.setAttribute('aria-label', 'Réduire la navigation');
+    bouton.setAttribute('aria-expanded', 'true');
+    bouton.innerHTML = svg(FLECHE_GAUCHE);
+    rail.appendChild(bouton);
+
+    function appliquer(replie, animerLargeur) {
+      /* La largeur du rail est un jeton du theme ; on l'ecrase juste le temps
+         du repli, jamais dans le theme lui-meme. */
+      var cible = replie ? '68px' : '';
+      if (animerLargeur && anime_permis()) {
+        var etat = { l: parseInt(getComputedStyle(document.documentElement)
+          .getPropertyValue('--rail')) || (replie ? 276 : 68) };
+        animate(etat, {
+          l: replie ? 68 : 276, duration: 220, ease: 'outQuad',
+          onUpdate: function () {
+            document.documentElement.style.setProperty('--rail', etat.l + 'px');
+          },
+          onComplete: function () {
+            document.documentElement.style.setProperty('--rail', cible);
+          }
+        });
+      } else {
+        document.documentElement.style.setProperty('--rail', cible);
+      }
+      rail.classList.toggle('replie', replie);
+      bouton.innerHTML = svg(replie ? FLECHE_DROITE : FLECHE_GAUCHE);
+      bouton.setAttribute('aria-label', replie ? 'Déplier la navigation' : 'Réduire la navigation');
+      bouton.setAttribute('aria-expanded', String(!replie));
+    }
+
+    bouton.addEventListener('click', function () {
+      var replie = !rail.classList.contains('replie');
+      appliquer(replie, true);
+      rail_retenir(replie);
+    });
+
+    /* Restitue l'etat memorise sans l'animer : un rechargement de page n'est
+       pas un geste de l'utilisateur, il ne merite pas une transition. */
+    if (rail_memorise()) appliquer(true, false);
+  }
+
+  /* ================================================================= */
+  /* LES EFFETS DE DEFILEMENT                                            */
+  /* ================================================================= */
+
+  function installer_effets_defilement() {
+    var scene = document.querySelector('.scene');
+    var entete = document.querySelector('.scene > .entete');
+    if (!scene) return;
+
+    var barre = document.createElement('div');
+    barre.className = 'progression-lecture';
+    document.body.appendChild(barre);
+
+    var monter = document.createElement('button');
+    monter.type = 'button';
+    monter.className = 'retour-haut';
+    monter.setAttribute('aria-label', 'Remonter en haut de la page');
+    monter.hidden = true;
+    monter.innerHTML = svg('<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>');
+    document.body.appendChild(monter);
+    monter.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: anime_permis() ? 'smooth' : 'auto' });
+    });
+
+    var rafDefile = false;
+    function sur_defilement() {
+      if (rafDefile) return;
+      rafDefile = true;
+      requestAnimationFrame(function () {
+        rafDefile = false;
+        var doc = document.documentElement;
+        var max = doc.scrollHeight - doc.clientHeight;
+        var pct = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+        barre.style.width = pct + '%';
+
+        var condensee = doc.scrollTop > 28;
+        if (entete) entete.classList.toggle('condensee', condensee);
+
+        var loin = doc.scrollTop > window.innerHeight * 0.6;
+        if (loin === monter.hidden) {   /* seulement quand l'etat change */
+          if (loin) {
+            monter.hidden = false;
+            if (anime_permis()) animate(monter, { opacity: [0, 1], duration: 160, ease: 'outQuad' });
+            else anime.utils.set(monter, { opacity: 1 });
+          } else if (anime_permis()) {
+            animate(monter, { opacity: [1, 0], duration: 140, ease: 'outQuad',
+              onComplete: function () { monter.hidden = true; } });
+          } else {
+            monter.hidden = true;
+          }
+        }
+      });
+    }
+
+    window.addEventListener('scroll', sur_defilement, { passive: true });
+    sur_defilement();
+  }
+
+  /* ---------------------------------------------------------- demarrage */
+
   /* ---------------------------------------------------------- demarrage */
 
   /* Le document rend son contenu dans son propre script, avant celui-ci :
@@ -3176,6 +3462,8 @@ var AXES = [
      donc a la main, puis on laisse l'observateur prendre les suivantes. */
   observer_vues();
   animer_pastille();
+  installer_rail();
+  installer_effets_defilement();
   var premiere = document.querySelector('.vue.actif');
   if (premiere) ouvrir(premiere);
 })();
