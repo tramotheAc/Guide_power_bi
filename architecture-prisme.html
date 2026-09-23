@@ -899,6 +899,25 @@ select {
 }
 .puce-levier:hover { color: var(--encre); border-color: var(--fam); }
 
+/* ------------------------------------------------------- la couche SEM */
+/* Le prefixe d'une famille de vues : il se lit en chasse fixe, comme
+   l'identifiant technique qu'il est. */
+.prefixe {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
+  background: var(--fam); color: #fff; letter-spacing: .01em;
+}
+
+/* La bus matrix : les cellules d'axe se lisent centrees, les deux premieres
+   colonnes restent alignees a gauche comme des libelles. */
+#bus-matrix td:not(:first-child):not(:nth-child(2)),
+#bus-matrix thead th:not(:first-child):not(:nth-child(2)) { text-align: center; }
+#bus-matrix .grain { font-size: 11.5px; color: var(--encre-tres-doux); }
+/* La legende de la matrice porte des phrases, pas des mots : elle se pose en
+   colonne plutot que sur une ligne qui deborderait. */
+#bus-legende { flex-direction: column; gap: 7px; align-items: flex-start; }
+#bus-legende span { align-items: flex-start; gap: 9px; }
+
 /* ------------------------------------------------- tableau des relations */
 .famille-cellule { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12.5px; }
 #relations .cadre-table, #charge .cadre-table, #incremental .cadre-table,
@@ -961,6 +980,7 @@ td .objet b { font-weight: 700; color: var(--encre); }
       <li><button type="button" data-page="principes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M9.5 19V4M15 19v-7M20.5 19v-4"/></svg>Les 10 principes</button></li>
       <li><button type="button" data-page="plateforme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>Le changement de cadre</button></li>
       <li><button type="button" data-page="jointures"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>Où vivent les jointures</button></li>
+      <li><button type="button" data-page="sem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="3.5" r="2"/><circle cx="12" cy="20.5" r="2"/><circle cx="3.5" cy="12" r="2"/><circle cx="20.5" cy="12" r="2"/><path d="M12 5.5v3.5M12 15v3.5M5.5 12H9M15 12h3.5"/></svg>La couche SEM</button></li>
       <li class="nav-groupe" role="presentation">Projeter</li>
       <li><button type="button" data-page="cible"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>L’étage BI</button></li>
       <li><button type="button" data-page="configurations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 19h18L12 3z"/><path d="M12 3v16"/></svg>Les 5 projections</button></li>
@@ -1217,6 +1237,114 @@ td .objet b { font-weight: 700; color: var(--encre); }
               ad-hoc</b>, où c’est justement le pré-joint qu’on vient chercher.</p>
           </div>
         </div>
+      </section>
+
+      <!-- -------------------------------------------------------------------- SEM -->
+      <section class="vue" id="vue-sem">
+        <p class="intro">Le chapitre précédent disait <i>où</i> vit la jointure : dans une vue.
+          Celui-ci donne la <b>discipline de modélisation</b> et le <b>vocabulaire</b> qui vont avec —
+          comment se construit la couche de service analytique posée sur le DWH, et comment on la
+          découpe pour les applications.</p>
+
+        <section class="carte">
+          <header><div><h3>La couche d’exposition <span class="tech">SEM</span></h3>
+            <p>Le DWH — les tables curées par ADF — reste la fondation et la source de vérité. On ne
+              le consomme pas directement : on pose au-dessus un schéma dédié fait de vues, qui est
+              <b>le contrat</b> que consomment les applications.</p></div></header>
+          <div class="corps">
+            <div class="duo" id="sem-vues"></div>
+          </div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Règle cardinale</h4>
+            <p>Un fait rapatrie <b>les clés</b> des dimensions selon lesquelles on l’analyse,
+              <b>jamais leurs colonnes</b>. Une clé entière par dimension ; les attributs restent
+              dans la <span class="tech">vDim_</span>, définie une seule fois.</p>
+            <p>L’objectif est triple : <b>compression</b> — une clé entière pèse une fraction d’un
+              libellé répété ; <b>cohérence</b> — un seul endroit où l’attribut est défini ; et
+              <b>évolutivité</b> — un nouvel attribut s’ajoute dans la dimension et devient
+              filtrable partout, via la clé déjà en place.</p>
+          </div>
+        </div>
+
+        <section class="carte">
+          <header><div><h3>Les deux vues, en pratique</h3></div></header>
+          <div class="corps" id="sem-code"></div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Dimensions conformes : la discipline</h3>
+            <p>Une dimension conforme est définie <b>une seule fois</b> et reliée à plusieurs faits de
+              plusieurs domaines. Elle garantit qu’un « client » veut dire la même chose partout, et
+              qu’une sélection se propage de façon identique.</p></div></header>
+          <div class="corps">
+            <div class="reflexes" id="sem-discipline"></div>
+          </div>
+        </section>
+
+        <div class="avis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <h4>Réplication assumée</h4>
+            <p>En modèles import par appli, chaque <span class="tech">vDim_*</span> est <b>copiée</b> —
+              cache d’import — dans chaque modèle qui l’utilise. Ces copies viennent de la même source
+              conforme : elles sont <b>identiques, pas divergentes</b>.</p>
+            <p>C’est le coût de l’autonomie des modèles, et il est léger : il ne porte que sur les
+              <b>dimensions</b>, les faits — lourds — n’étant pas partagés. Il tombe à zéro avec un
+              modèle central live, ou avec Fabric / Direct Lake.</p>
+          </div>
+        </div>
+
+        <section class="carte">
+          <header><div><h3>La bus matrix</h3>
+            <p>Processus — les faits — en lignes, dimensions conformes en colonnes. C’est l’outil de
+              cadrage : il révèle les domaines et, surtout, les dimensions les plus partagées.</p></div></header>
+          <div id="bus-matrix"></div>
+          <div class="corps" style="padding-top:12px">
+            <div class="legende" id="bus-legende"></div>
+            <p class="note-mesure" style="margin-top:12px"><b>Exemple de cadrage, pas un relevé.</b>
+              Cette matrice est bâtie sur les objets nommés dans le dossier pour montrer comment
+              l’outil se lit. Elle est à remplir et à valider domaine par domaine avec les métiers
+              avant de servir de référence.</p>
+          </div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Ce que la matrice donne à voir</h3></div></header>
+          <div class="corps">
+            <div class="reflexes" id="bus-lecture"></div>
+          </div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Le motif des « clés de référence »</h3>
+            <p>Pour les faits dont le grain est plus grossier que les axes qu’on veut leur appliquer :
+              l’impayé est au grain client × mois, mais on veut filtrer par lot, par bail, par
+              département.</p></div></header>
+          <div class="jalons" id="reference-etapes"></div>
+          <div class="corps">
+            <div id="reference-code"></div>
+            <p class="note-mesure" style="margin-top:14px">C’est la traduction, <b>dans la donnée</b>,
+              de ce que d’anciens « filtres successifs » faisaient à l’exécution — mais robuste, et
+              sans double comptage.</p>
+          </div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Mémo des règles de modélisation</h3>
+            <p>La page qu’on relit avant d’ouvrir une relation « pour voir si ça marche ».</p></div></header>
+          <div id="memo-regles"></div>
+        </section>
+
+        <section class="carte">
+          <header><div><h3>Rappel du fil directeur : à chaque besoin sa couche</h3>
+            <p>L’erreur d’origine était un modèle sémantique Power BI unique, censé servir de la même
+              façon tous les besoins. La cible les sépare.</p></div></header>
+          <div id="separation"></div>
+        </section>
       </section>
 
       <!-- ------------------------------------------------------------------ cible -->
@@ -1502,6 +1630,8 @@ var PAGES = {
                     sous: 'D’une architecture BI à une plateforme de service : deux familles d’accès, un principe unificateur, trois étages.' },
   jointures:      { titre: 'Où vivent les jointures',
                     sous: 'Une jointure n’est pas un objet stocké. Ce que la boîte à outils SQL permet, et pourquoi la vue est le pivot.' },
+  sem:            { titre: 'La couche d’exposition SEM',
+                    sous: 'Des vues au-dessus du DWH, des dimensions conformes, des domaines — la discipline de modélisation et le vocabulaire cible.' },
   cible:          { titre: 'L’étage BI de la cible',
                     sous: 'Un modèle central en import, consommé en connexion live par les 18 applications. Et les deux plafonds qui dictent la suite.' },
   configurations: { titre: 'Un modèle logique, cinq projections',
@@ -1563,7 +1693,9 @@ var IC = {
   tableur: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>',
   separer: '<line x1="12" y1="3" x2="12" y2="21"/><path d="M8 7 4 12l4 5"/><path d="m16 7 4 5-4 5"/>',
   boussole: '<circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10 16 8"/>',
-  chapeaux: '<path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/><path d="M9 6V4h6v2"/><path d="M9 11h6M9 15h6"/>'
+  chapeaux: '<path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/><path d="M9 6V4h6v2"/><path d="M9 11h6M9 15h6"/>',
+  bars: '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+  type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>'
 };
 
 /* ===========================================================================
@@ -2377,6 +2509,175 @@ var DECISIONS_OUVERTES = [
 ];
 
 /* ===========================================================================
+   La couche d'exposition SEM, les dimensions conformes et les domaines.
+
+   Chapitre ajoute apres « Ou vivent les jointures » : celui-la disait que la
+   jointure vit dans une vue, celui-ci donne la discipline de modelisation et
+   le vocabulaire cible. Rien de ce qui precede n'est modifie.
+   =========================================================================== */
+
+/* Les deux types de vues de la couche d'exposition. C'est la distinction qui
+   porte tout le reste : un fait rapatrie les CLES, jamais les colonnes. */
+var SEM_VUES = [
+  { prefixe: 'vDim_', fam: 'modele', icon: 'etoile', titre: 'Vues de dimension',
+    role: 'Les attributs descriptifs — ceux qu’on filtre et qu’on groupe.',
+    detail: "Conformes (voir la discipline ci-dessous), éventuellement légèrement enrichies — un petit flocon aplati est admis. Chaque dimension est définie <b>une seule fois</b> dans <span class=\"tech\">SEM</span>.",
+    exemples: ['vDim_Lot', 'vDim_Client', 'vDim_Patrimoine', 'vDim_Calendrier', 'vDim_Bail', 'vDim_Organisation'] },
+  { prefixe: 'vFait_', fam: 'service', icon: 'bars', titre: 'Vues de faits',
+    role: 'Les mesures, plus les clés étrangères vers les dimensions.',
+    detail: "<b>Jamais les colonnes descriptives</b> : une clé entière par dimension, et les attributs restent dans la <span class=\"tech\">vDim_</span>. Ce sont de simples vues SQL — <b>à ne pas confondre avec un composite model Power BI</b>, celui qu’on abandonne.",
+    exemples: ['vFait_Impaye', 'vFait_Occupation', 'vFait_Diagnostic', 'vFait_Affaire'] }
+];
+
+var SEM_CODE = [
+  { t: 'Une vue de dimension — les attributs, et rien d’autre', texte: `CREATE VIEW SEM.vDim_Lot AS
+SELECT  l.ID_lot,                  -- la cle, entiere et stable
+        l.Code_lot,
+        l.Type_lot,
+        l.Surface_habitable,
+        l.Nombre_pieces,
+        p.Code_patrimoine,         -- petit flocon aplati, assume
+        p.Libelle_patrimoine
+FROM    DWH.Lot AS l
+LEFT JOIN DWH.Patrimoine AS p ON p.ID_patrimoine = l.ID_patrimoine;` },
+  { t: 'Une vue de fait — les mesures et les clés, jamais les libellés', texte: `CREATE VIEW SEM.vFait_Occupation AS
+SELECT  o.ID_lot,                  -- cles vers les dimensions
+        o.ID_client,
+        o.ID_bail,
+        o.Date_arrete,             -- cle vers vDim_Calendrier
+        o.Montant_loyer,           -- mesures
+        o.Montant_charges
+FROM    DWH.Lot_historique AS o;
+-- Aucun libelle ici : Type_lot et Libelle_patrimoine vivent dans
+-- vDim_Lot, definis une seule fois et filtrables partout.` }
+];
+
+/* La discipline des dimensions conformes. */
+var SEM_DISCIPLINE = [
+  { icon: 'cle', t: 'Source unique',
+    d: "Une seule définition dans <span class=\"tech\">SEM</span> ; pas de copie divergente par domaine. Un « client », un « lot », un « patrimoine » veulent dire la même chose partout." },
+  { icon: 'type', t: 'Clés stables et entières',
+    d: "Pour les relations, jamais une chaîne composite du type <span class=\"tech\">Annee_mois</span>. C’est le même prérequis que celui qui bloque l’incrémental." },
+  { icon: 'fleche', t: 'Sens unique par défaut',
+    d: "La dimension filtre le fait ; jamais l’inverse par la relation. Le besoin de retour se traite dans la mesure, pas en ouvrant la relation." },
+  { icon: 'etoile', t: 'Un axe conforme reste sa propre vue',
+    d: "On n’enterre pas Organisation ou Patrimoine dans <span class=\"tech\">vDim_Lot</span> s’ils sont partagés par d’autres domaines. Un attribut descriptif ponctuel, oui ; un axe conforme, non." },
+  { icon: 'date', t: 'Un seul calendrier',
+    d: "Au grain jour, marqué comme table de dates, avec les rôles de date gérés en <b>relations inactives</b> plus <span class=\"tech\">USERELATIONSHIP</span> — pas de calendriers multiples reliés entre eux." }
+];
+
+/* ===========================================================================
+   La bus matrix.
+
+   Exemple de cadrage, pas un releve : elle est batie sur les objets nommes
+   dans le dossier pour montrer comment l'outil se lit. Elle est a valider
+   domaine par domaine avec les metiers avant de servir de reference.
+   =========================================================================== */
+var BUS_DIMENSIONS = ['Calendrier', 'Client', 'Lot', 'Bail', 'Patrimoine', 'Organisation'];
+
+var BUS_MATRIX = [
+  { domaine: 'Impayé', fait: 'vFait_Impaye', grain: 'client × mois',
+    axes: ['direct', 'direct', 'reference', 'reference', 'reference', 'reference'] },
+  { domaine: 'Patrimoine / occupation', fait: 'vFait_Occupation', grain: 'lot × mois',
+    axes: ['direct', 'direct', 'direct', 'direct', 'direct', 'direct'] },
+  { domaine: 'Technique', fait: 'vFait_Diagnostic', grain: 'diagnostic',
+    axes: ['direct', 'non', 'direct', 'non', 'direct', 'direct'] },
+  { domaine: 'Technique', fait: 'vFait_Intervention', grain: 'intervention',
+    axes: ['direct', 'non', 'direct', 'non', 'direct', 'direct'] },
+  { domaine: 'Affaires', fait: 'vFait_Affaire', grain: 'affaire',
+    axes: ['direct', 'direct', 'direct', 'direct', 'direct', 'direct'] },
+  { domaine: 'Copropriété', fait: 'vFait_Resolution_copropriete', grain: 'résolution',
+    axes: ['direct', 'non', 'non', 'non', 'direct', 'direct'] }
+];
+
+var BUS_VALEURS = {
+  direct:    { texte: 'Clé portée', couleur: 'vert',
+               note: 'Le fait porte la clé de la dimension : relation directe, un seul saut, sens unique.' },
+  reference: { texte: 'Clé de référence', couleur: 'ambre',
+               note: 'Le fait est à un grain plus grossier : le DWH lui attache un membre de référence (voir le motif ci-dessous).' },
+  non:       { texte: '—', couleur: 'sans-objet',
+               note: 'L’axe ne s’applique pas à ce fait.' }
+};
+
+/* Ce que la bus matrix sert a voir, une fois remplie. */
+var BUS_LECTURE = [
+  { icon: 'reseau', t: 'Les dimensions les plus partagées',
+    d: "Ce sont les colonnes les plus remplies — ici <b>Calendrier</b>, <b>Patrimoine</b>, <b>Organisation</b> et <b>Lot</b>. Ce sont elles qu’il faut conformer <b>en priorité</b> : chaque conformation gagnée sert plusieurs domaines d’un coup." },
+  { icon: 'decouper', t: 'Les domaines, qui n’existent pas comme objets',
+    d: "Un domaine — impayé, patrimoine/occupation, technique, affaires, copropriété — est un <b>concept d’organisation</b>. Aucune table « domaine » n’existe. Il prend corps par une convention de nommage, un espace de travail, un modèle d’appli : jamais comme entité stockée." },
+  { icon: 'prisme', t: 'Le périmètre de chaque appli',
+    d: "Chaque application importe <b>son</b> domaine : ses <span class=\"tech\">vFait_*</span> plus les <span class=\"tech\">vDim_*</span> nécessaires, reliés sur les clés en sens unique, avec l’incrémental sur les gros faits." },
+  { icon: 'balance', t: 'Les faits à grain grossier',
+    d: "Les cases en <b>clé de référence</b> signalent les faits dont le grain est plus grossier que l’axe demandé. Elles appellent le motif décrit ci-dessous, et rien d’autre — surtout pas un pont ni un bidirectionnel." }
+];
+
+/* Le motif des cles de reference, pour les faits a grain grossier. */
+var REFERENCE_ETAPES = [
+  { t: 'Le DWH calcule la référence point-in-time',
+    d: "Par ligne de fait : le bail actif du client <i>ce mois-là</i>, et les clés qui en découlent — <span class=\"tech\">ID_lot</span>, <span class=\"tech\">ID_patrimoine</span>, <span class=\"tech\">ID_organisation</span>." },
+  { t: 'Le fait porte ces clés de référence',
+    d: "Chaque dimension le filtre alors <b>en un seul saut, en sens unique</b>. Le fait devient sa propre petite étoile : on ne traverse ni pont ni relation bidirectionnelle." },
+  { t: 'Le grain reste inchangé',
+    d: "Toujours client × mois. La somme reste juste, il n’y a pas de doublon — c’est ce qui distingue ce motif d’une jointure qui dégraderait le grain." },
+  { t: 'Les cas non rattachés ont un membre dédié',
+    d: "Clients partis ou sans logement : pointer le dernier bail connu, et/ou un membre « <b>Sans logement</b> » de clé <span class=\"tech\">-1</span>, <b>jamais NULL</b>, plus un attribut <span class=\"tech\">Statut</span> (Actif / Sorti)." }
+];
+
+var REFERENCE_CODE = { t: 'La référence point-in-time, calculée dans le DWH', texte: `SELECT  f.ID_client,
+        f.Date_arrete,
+        f.Montant_impaye,
+        -- Cle -1 plutot que NULL : le membre « Sans logement » existe
+        -- dans la dimension, et reste filtrable comme les autres.
+        ISNULL ( b.ID_bail, -1 )         AS ID_bail_reference,
+        ISNULL ( b.ID_lot, -1 )          AS ID_lot_reference,
+        ISNULL ( l.ID_patrimoine, -1 )   AS ID_patrimoine_reference,
+        ISNULL ( p.ID_organisation, -1 ) AS ID_organisation_reference
+FROM    DWH.Fait_impaye AS f
+-- Le bail actif du client au mois d'arrete : c'est la reference.
+LEFT JOIN DWH.Bail AS b
+       ON  b.ID_client   = f.ID_client
+       AND b.Date_debut <= f.Date_arrete
+       AND ( b.Date_fin IS NULL OR b.Date_fin > f.Date_arrete )
+LEFT JOIN DWH.Lot        AS l ON l.ID_lot        = b.ID_lot
+LEFT JOIN DWH.Patrimoine AS p ON p.ID_patrimoine = l.ID_patrimoine;
+-- Grain inchange : une ligne par client et par mois.` };
+
+/* ===========================================================================
+   Le memo des regles de modelisation. C'est la page qu'on relit avant
+   d'ouvrir une relation « pour voir si ca marche ».
+   =========================================================================== */
+var MEMO_REGLES = [
+  { regle: 'La <b>dimension filtre le fait</b>', comment: 'Relation, en sens unique. La dimension filtre aussi le pont.',
+    evite: 'Les chemins de filtre ambigus et le coût du retour', bon: true },
+  { regle: 'Le <b>pont ne filtre rien</b> par défaut', comment: 'En bidirectionnel seulement, il propage le filtre d’une dimension vers l’autre qu’il relie — résolution d’un vrai N:N.',
+    evite: 'Le bidirectionnel posé par habitude sur tous les ponts', bon: true },
+  { regle: 'Le <b>fait ne propage aucun filtre</b>', comment: 'Ni vers les dimensions, ni vers les autres faits : il s’agrège en mesures.',
+    evite: 'Les relations fait-à-fait et les totaux qui ne se recomposent pas', bon: true },
+  { regle: 'Quels membres sont concernés → <b>une mesure</b>', comment: '<span class="tech">COUNTROWS</span> ou <span class="tech">DISTINCTCOUNT</span>, plus un filtre visuel.',
+    evite: 'De retourner la relation pour répondre à une question d’affichage', bon: true },
+  { regle: 'On ne <b>relie jamais deux faits</b>', comment: 'Deux faits de même grain se rejoignent via leurs dimensions conformes, ou par une mesure <span class="tech">TREATAS</span> sur la clé de grain commune. Une allocation stable se matérialise dans le DWH.',
+    evite: 'Le double comptage et les mesures qui ne s’expliquent plus', bon: true },
+  { regle: 'Avant le bidirectionnel : <b>le fait porte-t-il déjà la clé ?</b>', comment: 'Une relation directe en sens unique bat toujours un pont.',
+    evite: 'Un pont posé là où une clé de référence suffisait', bon: true },
+  { regle: '<b>Une mesure par métrique</b>, réutilisée sur tous les axes', comment: 'Ce sont les relations qui « naviguent », pas les mesures. Les variantes temporelles passent par des <b>groupes de calcul</b>.',
+    evite: 'La prolifération de mesures quasi identiques', bon: true },
+  { regle: 'Mesures rangées dans des <b>tables de mesures thématiques</b>', comment: 'Plus des dossiers d’affichage. L’organisation n’est pas la même chose que les groupes de calcul.',
+    evite: 'Un volet des champs que personne ne sait plus lire', bon: true }
+];
+
+/* Le fil directeur : a chaque besoin sa couche. */
+var SEPARATION = [
+  { besoin: 'Le centre', fam: 'archi', couche: 'L’entrepôt — socle conforme et vues <span class="tech">SEM</span>',
+    precision: 'Pas un modèle Power BI. C’est l’erreur d’origine qu’on corrige.', statut: 'Acquis' },
+  { besoin: 'Applis BI', fam: 'modele', couche: 'Modèles import par domaine, sur les vues <span class="tech">SEM</span>',
+    precision: 'Un modèle par domaine, pas un modèle universel.', statut: 'Court terme' },
+  { besoin: 'Libre-service métier', fam: 'service', couche: 'Couche mince — modèle partagé via Excel, ou les vues',
+    precision: 'Le moment venu : ce n’est pas le chantier d’ouverture.', statut: 'Le moment venu' },
+  { besoin: 'API et opérationnel', fam: 'cadre', couche: 'Couche de service dédiée — tables pré-jointes, cache',
+    precision: 'À cadrer avec le fork transactionnel, qui décide du dimensionnement.', statut: 'Plus tard' }
+];
+
+/* ===========================================================================
    Rendu et interactions.
    =========================================================================== */
 (function () {
@@ -2459,7 +2760,8 @@ var DECISIONS_OUVERTES = [
     'Date.FromText', 'Date.From', 'RangeStart', 'RangeEnd',
     'ALTER', 'TABLE', 'ADD', 'AS', 'PERSISTED', 'CONVERT', 'CREATE', 'INDEX', 'ON',
     'SELECT', 'FROM', 'WHERE', 'CALCULATE', 'CROSSFILTER', 'TREATAS', 'DISTINCTCOUNT',
-    'USERELATIONSHIP', 'VAR', 'RETURN', 'BOTH', 'NONE', 'date'];
+    'USERELATIONSHIP', 'VAR', 'RETURN', 'BOTH', 'NONE', 'date',
+    'VIEW', 'LEFT', 'JOIN', 'ISNULL', 'IS', 'NULL', 'COUNTROWS', 'SCHEMABINDING'];
 
   /** Echappement pour du code : les guillemets restent lisibles dans un pre. */
   function echCode(valeur) {
@@ -2916,6 +3218,103 @@ var DECISIONS_OUVERTES = [
       }).join('') + '</tbody></table></div>';
   }
 
+  /* --------------------------------------------------- la couche SEM */
+
+  function poserSemVues() {
+    $('sem-vues').innerHTML = SEM_VUES.map(function (v) {
+      return '<section class="carte ' + FAM[v.fam].classe + '" style="border-top:3px solid var(--fam)">'
+        + '<header><div>'
+        + '<span class="prefixe">' + ech(v.prefixe) + '</span>'
+        + '<h3 style="margin-top:8px">' + ech(v.titre) + '</h3>'
+        + '<p class="accroche">' + ech(v.role) + '</p></div>'
+        + '<span class="embleme" style="width:30px;height:30px;color:var(--fam);flex:none">'
+        + svg(IC[v.icon]) + '</span></header>'
+        + '<div class="corps" style="display:flex;flex-direction:column;gap:11px">'
+        + '<div class="champ"><p>' + v.detail + '</p></div>'
+        + '<div><div class="etiquette-champ">Exemples</div>'
+        + '<div class="couche-jetons">' + v.exemples.map(function (e) {
+            return '<span class="jeton"><span class="objet">' + ech(e) + '</span></span>';
+          }).join('') + '</div></div>'
+        + '</div></section>';
+    }).join('');
+  }
+
+  function poserSemCode() {
+    $('sem-code').innerHTML = SEM_CODE.map(function (c, i) {
+      return blocCode(c.texte, 'sem-' + i, c.t);
+    }).join('');
+  }
+
+  function poserSemDiscipline() {
+    $('sem-discipline').innerHTML = SEM_DISCIPLINE.map(function (d) {
+      return '<div class="reflexe"><div class="embleme">' + svg(IC[d.icon]) + '</div>'
+        + '<div><h4>' + ech(d.t) + '</h4><p>' + d.d + '</p></div></div>';
+    }).join('');
+  }
+
+  function poserBusMatrix() {
+    $('bus-matrix').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Domaine</th><th>Fait</th>'
+      + BUS_DIMENSIONS.map(function (d) { return '<th>' + ech(d) + '</th>'; }).join('')
+      + '</tr></thead><tbody>'
+      + BUS_MATRIX.map(function (r) {
+        return '<tr><td>' + ech(r.domaine) + '</td>'
+          + '<td><span class="objet"><b>' + ech(r.fait) + '</b></span>'
+          + '<br><span class="grain">grain : ' + ech(r.grain) + '</span></td>'
+          + r.axes.map(function (a) {
+              var v = BUS_VALEURS[a];
+              return '<td><span class="jeton ' + v.couleur + '" title="' + ech(v.note) + '">'
+                + ech(v.texte) + '</span></td>';
+            }).join('')
+          + '</tr>';
+      }).join('') + '</tbody></table></div>';
+
+    $('bus-legende').innerHTML = Object.keys(BUS_VALEURS).map(function (k) {
+      return '<span><span class="jeton ' + BUS_VALEURS[k].couleur + '">'
+        + ech(BUS_VALEURS[k].texte) + '</span>' + ech(BUS_VALEURS[k].note) + '</span>';
+    }).join('');
+  }
+
+  function poserBusLecture() {
+    $('bus-lecture').innerHTML = BUS_LECTURE.map(function (b) {
+      return '<div class="reflexe"><div class="embleme">' + svg(IC[b.icon]) + '</div>'
+        + '<div><h4>' + ech(b.t) + '</h4><p>' + b.d + '</p></div></div>';
+    }).join('');
+  }
+
+  function poserReference() {
+    $('reference-etapes').innerHTML = REFERENCE_ETAPES.map(function (e, i) {
+      return '<div class="jalon"><div class="rang">' + (i + 1) + '</div>'
+        + '<div><h4>' + ech(e.t) + '</h4><p>' + e.d + '</p></div></div>';
+    }).join('');
+    $('reference-code').innerHTML = blocCode(REFERENCE_CODE.texte, 'ref-pit', REFERENCE_CODE.t);
+  }
+
+  function poserMemo() {
+    $('memo-regles').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>La règle</th><th>Ce qu’elle dit</th><th>Ce qu’elle évite</th>'
+      + '</tr></thead><tbody>'
+      + MEMO_REGLES.map(function (m) {
+        return '<tr><td>' + m.regle + '</td>'
+          + '<td>' + m.comment + '</td>'
+          + '<td>' + ech(m.evite) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function poserSeparation() {
+    $('separation').innerHTML = '<div class="cadre-table"><table><thead><tr>'
+      + '<th>Le besoin</th><th>La couche taillée pour lui</th><th>Précision</th><th>Quand</th>'
+      + '</tr></thead><tbody>'
+      + SEPARATION.map(function (s2) {
+        return '<tr class="' + FAM[s2.fam].classe + '">'
+          + '<td><span class="famille-cellule"><span class="pastille-fam"></span><b>'
+          + ech(s2.besoin) + '</b></span></td>'
+          + '<td>' + s2.couche + '</td>'
+          + '<td>' + ech(s2.precision) + '</td>'
+          + '<td><span class="jeton">' + ech(s2.statut) + '</span></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
   /* -------------------------------------------------- la feuille de route */
 
   function poserHorizons() {
@@ -3159,6 +3558,14 @@ var DECISIONS_OUVERTES = [
   poserFork();
   poserObjetsSql();
   poserEnjeuxVues();
+  poserSemVues();
+  poserSemCode();
+  poserSemDiscipline();
+  poserBusMatrix();
+  poserBusLecture();
+  poserReference();
+  poserMemo();
+  poserSeparation();
   poserConfigurations();
   poserCriteres();
   poserRelations();
